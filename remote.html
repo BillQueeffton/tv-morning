@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TV">
+<title>TV</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;background:#12110d;color:#f6efe0;font:16px -apple-system,system-ui,sans-serif;height:100%}
+main{max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 20px);display:flex;flex-direction:column;gap:18px;min-height:100%}
+.top{display:flex;justify-content:space-between;align-items:baseline}
+h1{font:400 30px Georgia,serif;margin:0}
+#st{font:12px ui-monospace,monospace;color:#8a8270;letter-spacing:.06em;text-transform:uppercase}
+.pad{position:relative;width:min(320px,82vw);aspect-ratio:1;margin:6px auto;border-radius:50%;background:#1f1d17}
+.pad button{position:absolute;background:none;border:0;color:#d4c59e;font-size:30px;width:33%;height:33%}
+.pad .u{top:0;left:33.5%}.pad .d{bottom:0;left:33.5%}.pad .l{left:0;top:33.5%}.pad .r{right:0;top:33.5%}
+.pad .ok{left:28%;top:28%;width:44%;height:44%;border-radius:50%;background:#2b241c;color:#f6efe0;font-size:20px;letter-spacing:.08em}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+button.b{border:0;border-radius:14px;background:#2b2a22;color:#f6efe0;height:54px;font-size:16px}
+button.b:active,.pad button:active{background:#e08a4f;color:#12110d}
+.lab{font:11px ui-monospace,monospace;letter-spacing:.1em;color:#8a8270;margin:4px 0 -6px}
+.lv{display:grid;grid-template-columns:1fr 54px 54px;gap:10px;align-items:center}
+.lv span{font-size:16px;color:#b9ae96}
+</style></head><body><main>
+<div class="top"><h1>TV</h1><span id="st">connecting…</span></div>
+<div class="pad">
+ <button class="u" data-a="up">▲</button><button class="l" data-a="left">◀</button><button class="ok" data-a="ok">OK</button><button class="r" data-a="right">▶</button><button class="d" data-a="down">▼</button>
+</div>
+<div class="row"><button class="b" data-a="back">Back</button><button class="b" data-a="home">Home</button><button class="b" data-a="photo">Next photo</button></div>
+<p class="lab">OPEN</p>
+<div class="row4"><button class="b" data-a="open:surf">Surf</button><button class="b" data-a="open:jump">Jump</button><button class="b" data-a="open:weather">Weather</button><button class="b" data-a="open:events">Events</button></div>
+<div class="row4"><button class="b" data-a="open:tide">Tide</button><button class="b" data-a="open:week">Week</button><button class="b" data-a="open:apps">Apps</button><button class="b" data-a="open:settings">Settings</button></div>
+<p class="lab">THIS TIME OF DAY</p>
+<div class="lv"><span>Brightness</span><button class="b" data-a="bri:-">−</button><button class="b" data-a="bri:+">+</button></div>
+<div class="lv"><span>Volume</span><button class="b" data-a="vol:-">−</button><button class="b" data-a="vol:+">+</button></div>
+<div class="row"><button class="b" data-a="sunrise">Sunrise</button><button class="b" data-a="refresh">Refresh</button><button class="b" data-a="open:tomorrow">Tomorrow</button></div>
+</main>
+<script>
+var K=new URLSearchParams(location.search).get("k")||"";
+function st(){fetch("/state?k="+K).then(function(r){return r.json()}).then(function(j){document.getElementById("st").textContent=(j.view||"home")+(j.profile?" · "+j.profile:"")+(j.brightness!=null?" · "+j.brightness+"% bright":"")}).catch(function(){document.getElementById("st").textContent="TV not reachable"})}
+function send(a){if(navigator.vibrate)navigator.vibrate(8);fetch("/c?k="+K+"&a="+encodeURIComponent(a)).then(function(){setTimeout(st,350)}).catch(function(){document.getElementById("st").textContent="TV not reachable"})}
+document.querySelectorAll("[data-a]").forEach(function(b){b.addEventListener("click",function(){send(b.getAttribute("data-a"))})});
+st();setInterval(st,8000);
+</script></body></html>

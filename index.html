@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- MORNING-PAGE -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Morning</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100vw;height:100vh;overflow:hidden;background:#12110d;color:#f6efe0;font-family:Inter,Arial,sans-serif}
+#wrap{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden}
+.mono{font-family:'JetBrains Mono',monospace}.serif{font-family:Fraunces,Georgia,serif}
+.lab{margin:0;font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.08em}
+/* photo */
+.ph{position:absolute;inset:-40px;background-size:cover;background-position:center;opacity:0;transition:opacity 3s ease}
+.ph.on{opacity:1;animation:drift 60s ease-in-out infinite alternate}
+@keyframes drift{from{transform:scale(1.04) translate(0,0)}to{transform:scale(1.12) translate(-30px,-18px)}}
+#shadeB{position:absolute;left:0;right:0;bottom:0;height:560px;background:#12110d;opacity:.8}
+#shadeT{position:absolute;left:0;top:0;width:640px;height:270px;background:#12110d;opacity:.4}
+/* top */
+#hello{position:absolute;left:88px;top:60px}
+#date{color:#e7d9b8;letter-spacing:.1em;font-size:18px}
+#clock{margin:0;font-family:Fraunces,Georgia,serif;font-weight:300;font-size:132px;line-height:.95}
+#greet{margin:8px 0 0;font-family:Fraunces,Georgia,serif;font-size:40px;line-height:1.15;max-width:900px}
+#cap{position:absolute;right:88px;top:72px;text-align:right}
+#cap .t{margin:0;font-family:Fraunces,Georgia,serif;font-style:italic;font-size:26px}
+#cap .s{margin:4px 0 0;color:#e7d9b8;font-size:15px}
+/* cards */
+#cards{position:absolute;left:88px;right:88px;top:556px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.card{border-radius:22px;padding:22px 26px;display:flex;flex-direction:column;gap:6px;min-height:212px;outline:none;transition:transform .25s ease, box-shadow .25s ease}
+.card .big{margin:0;font-family:Fraunces,Georgia,serif;font-size:42px;line-height:1.02}
+.card .sub{margin:0;font-size:19px;opacity:.85}
+.c-surf{background:#f6efe0;color:#1d1c16}.c-surf .lab{color:#6b6553}
+.c-jump{background:#2b241c}.c-jump .lab{color:#f0b48f}
+.c-tide{background:#1f2a26}.c-tide .lab{color:#9fc3b2}
+.c-wx{background:#2a2a1f}.c-wx .lab{color:#d4c59e}
+.c-tom{background:#f6efe0;color:#1d1c16}.c-tom .lab{color:#6b6553}
+.c-syd{background:#2b1f2a}.c-syd .lab{color:#d9a9cf}
+.c-week{background:#2a2a1f}.c-week .lab{color:#d4c59e}
+.bars{display:flex;gap:5px;margin-top:6px}.bars i{width:38px;height:7px;border-radius:4px;background:#d9ccb0}.bars i.on{background:#c46a3c}
+/* strip */
+#strip{position:absolute;left:88px;right:88px;top:836px;display:flex;gap:22px}
+.pill{border-radius:18px;padding:14px 22px;display:flex;gap:18px;align-items:center;outline:none;transition:transform .25s ease, box-shadow .25s ease}
+#weekPill{flex:1.4;background:#2a2a1f}
+#playPill{flex:1;background:#2f5d47}
+/* dock */
+#dock{position:absolute;left:88px;right:88px;bottom:40px;display:flex;gap:14px;align-items:center}
+.app{width:150px;height:70px;border-radius:12px;background:#3b3a2e;display:flex;align-items:center;justify-content:center;font-size:18px;outline:none;transition:transform .25s ease, box-shadow .25s ease}
+#hint{margin-left:auto;color:#b9ae96;font-size:14px}
+/* focus */
+.f{cursor:pointer}
+.brow.f.focus{transform:none;box-shadow:none;background:#2b241c}
+.f.evrow.focus{transform:none;background:#2b241c;box-shadow:inset 0 0 0 3px #e08a4f}
+.f.focus{transform:scale(1.04);box-shadow:0 0 0 5px #e08a4f, 0 0 0 11px rgba(224,138,79,.25)}
+/* detail overlay */
+#detail{position:absolute;inset:0;background:#12110d;display:none;padding:64px 88px;opacity:0;transition:opacity .35s ease}
+#detail.open{display:block;opacity:1}
+#dTitle{margin:0;font-family:Fraunces,Georgia,serif;font-size:72px;font-weight:300}
+#dSub{margin:6px 0 28px;color:#b9ae96;font-size:22px}
+#dBody{position:absolute;left:88px;right:88px;top:230px;bottom:64px}
+#dBack{position:absolute;right:88px;top:80px;color:#b9ae96;font-size:15px}
+.tbl{width:100%;border-collapse:collapse;font-size:22px}
+.tbl th{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.08em;color:#8a8270;text-align:left;font-weight:400;padding:0 12px 10px 0}
+.tbl td{padding:12px 12px 12px 0;border-top:1px solid #2e2d22}
+.row{display:flex;gap:22px}
+.box{background:#1d1c16;border-radius:18px;padding:22px 26px}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:14px}
+.day{background:#1d1c16;border-radius:16px;padding:18px 18px;min-height:150px}
+.day.today{background:#2b241c;box-shadow:inset 0 0 0 2px #e08a4f}
+.go{color:#9fd4a8}.marg{color:#f0c48f}.hold{color:#e58b7a}
+.arrow{display:inline-block;width:22px;height:22px;vertical-align:-4px}
+#radar{position:relative;width:768px;height:512px;border-radius:18px;overflow:hidden;background:#1d1c16}
+#radar img{position:absolute;width:256px;height:256px}
+.err{color:#e58b7a}
+body.dream #cards,body.dream #strip,body.dream #dock,body.dream #detail,body.dream #shadeT{display:none!important}
+body.dream #hello{opacity:.85}
+.app.np{width:auto;padding:0 26px;background:#2b241c;color:#f6efe0}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="photos"></div>
+  <div id="shadeB"></div><div id="shadeT"></div>
+  <div id="hello"><p class="mono" id="date" style="margin:0"></p><p id="clock"></p></div>
+  <div id="cap"><p class="t" id="capT"></p><p class="s mono" id="capS"></p></div>
+  <div id="cards"></div>
+  <div id="strip">
+    <div class="pill f" id="weekPill" data-open="week"><p class="lab" style="color:#d4c59e;flex-shrink:0">THIS WEEK</p><div id="weekLine" style="display:flex;gap:18px;font-size:18px"></div></div>
+    <div class="pill f" id="playPill" data-launch="com.spotify.tv.android"><div style="width:44px;height:44px;border-radius:8px;background:#c46a3c;flex-shrink:0"></div><p style="margin:0;font-size:19px"><span class="mono" style="font-size:13px;color:#a9d4bf;display:block">PLAY ON THE TV</span><span id="playName">Morning playlist</span></p></div>
+  </div>
+  <div id="dock"></div>
+  <div id="tone" style="position:absolute;inset:0;pointer-events:none;background:#ff9a3c;opacity:0;transition:opacity 4s"></div><div id="dimL" style="position:absolute;inset:0;pointer-events:none;background:#000;opacity:0;transition:opacity 4s"></div>
+  <div id="detail"><p id="dBack" class="mono">BACK TO CLOSE</p><p id="dTitle"></p><p id="dSub"></p><div id="dBody"></div></div>
+</div>
+<script>
+/* ---------- settings ---------- */
+var CFG={
+  lat:-34.40, lon:150.89, mlat:-34.42, mlon:150.95,
+  updateUrl:"",               /* set in /sdcard/TV-Morning/config.json */
+  calendarIcs:"",            /* paste the Google Calendar secret iCal address here */
+  playlistUri:"",            /* e.g. spotify:playlist:xxxx */
+  apps:[["Spotify","com.spotify.tv.android"],["YouTube","com.google.android.youtube.tv"],["Netflix","com.netflix.ninja"],["Disney+","com.disney.disneyplus"],["Max","com.wbd.stream"],["Paramount+","com.cbs.ca"],["ABC iview","au.net.abc.iview"],["SBS","com.sbs.ondemand.tv"],["9Now","au.com.ninenow.ctv"],["10","au.com.tenplay"],["7plus","com.swm.live"],["Inputs","com.tcl.tv"],["Play Store","com.android.vending"],["Settings","com.android.tv.settings"]],
+  /* Time-of-day setups: applied automatically once when each one starts */
+  profiles:[                 /* brightness and volume in % */
+    {id:"morning",from:5, to:11,volume:20,brightness:85,dim:0,   warm:0   },
+    {id:"day",    from:11,to:17,volume:25,brightness:95,dim:0,   warm:0   },
+    {id:"evening",from:17,to:19,volume:15,brightness:20,dim:0.1, warm:0.12},
+    {id:"night",  from:19,to:5, volume:8, brightness:0, dim:0.5, warm:0.22}],
+  wakeTimes:"6:00,17:30",     /* the app brings itself to the front at these times if the TV is on */
+  dockMorning:["Spotify","YouTube","Netflix","ABC iview","SBS","Disney+"],
+  dockEvening:["Netflix","Disney+","Max","YouTube","SBS","Paramount+"]
+};
+var BREAKS=[
+ {n:"Sandon Point",sw:[90,180],off:[225,315],mn:1.0,mx:3.0,tide:"lowmid",why:"Right-hander, likes S–SE and lower tide"},
+ {n:"Bulli Point",sw:[100,170],off:[225,300],mn:1.0,mx:2.5,tide:"mid",why:"Point setup, best on the push to mid"},
+ {n:"Thirroul",sw:[45,150],off:[225,315],mn:0.6,mx:1.8,tide:"any",why:"Beachie, picks up NE–SE swell"},
+ {n:"Austinmer",sw:[45,160],off:[200,300],mn:0.5,mx:1.5,tide:"midhigh",why:"Small-day beachie, copes with a bit of SW"},
+ {n:"North Wollongong",sw:[45,150],off:[180,300],mn:0.5,mx:1.8,tide:"any",why:"Tucked away from southerlies"},
+ {n:"Port Kembla",sw:[45,150],off:[225,315],mn:0.6,mx:2.0,tide:"any",why:"Open beach, grabs any east in the swell"},
+ {n:"Windang Island",sw:[120,200],off:[0,70],mn:1.0,mx:2.5,tide:"mid",why:"South swell spot that holds a northerly"},
+ {n:"The Farm",sw:[110,190],off:[250,360],mn:0.8,mx:2.2,tide:"any",why:"Killalea, consistent on S–SE swell"}];
+var HAS=typeof Native!=="undefined";
+var F=null,M=null,W=null,CAL=[];
+
+/* ---------- your settings (changed from the Customise screen, kept on the TV) ---------- */
+var CARDS={surf:"Surf",jump:"Jump",tide:"Tide",weather:"Weather",events:"Events",tomorrow:"Tomorrow"};
+var GENRES=["House","Deep House","Disco","Garage","Minimal","Tech House","Techno","Electro","Jazz","Bass","Hip-Hop","R&B"];
+var PDEF={cards:{morning:["surf","jump","tide","weather"],day:["weather","surf","tide","jump"],evening:["tomorrow","events","weather","tide"]},
+ breaksOff:[],taste:["House","Deep House","Disco","Garage","Minimal","Tech House","Electro","Jazz"],prof:{},wake:["6:00","17:30"]};
+var PREFS=JSON.parse(JSON.stringify(PDEF));
+function loadPrefs(){try{var p=JSON.parse(localStorage.getItem("prefs")||"{}");for(var k in p)PREFS[k]=p[k]}catch(e){}applyPrefs()}
+function savePrefs(){try{localStorage.setItem("prefs",JSON.stringify(PREFS))}catch(e){}applyPrefs()}
+function applyPrefs(){TASTE=PREFS.taste.map(function(x){return x.toLowerCase()});
+ CFG.profiles.forEach(function(p){var o=PREFS.prof[p.id];if(o){if(o.volume!=null)p.volume=o.volume;if(o.brightness!=null)p.brightness=o.brightness}});
+ CFG.wakeTimes=PREFS.wake.join(",");if(HAS&&Native.schedule)Native.schedule(CFG.wakeTimes)}
+function activeBreaks(){return BREAKS.filter(function(b){return PREFS.breaksOff.indexOf(b.n)<0})}
+/* ---------- helpers ---------- */
+function $(i){return document.getElementById(i)}
+function inR(a,r){return r[0]<=r[1]?(a>=r[0]&&a<=r[1]):(a>=r[0]||a<=r[1])}
+function dist(a,r){if(inR(a,r))return 0;var d1=Math.abs(((a-r[0]+540)%360)-180),d2=Math.abs(((a-r[1]+540)%360)-180);return Math.min(d1,d2)}
+function card(d){return["N","NE","E","SE","S","SW","W","NW"][Math.round(d/45)%8]}
+function hh(i){var h=((i%24)+24)%24;return(h===0?12:h>12?h-12:h)+(h<12?"am":"pm")}
+function hm(s){var d=new Date(s);return d.getHours()+":"+pad(d.getMinutes())}
+function pad(n){return(n<10?"0":"")+n}
+function arrow(deg,col){return '<svg class="arrow" viewBox="0 0 24 24" style="transform:rotate('+((deg+180)%360)+'deg)"><path d="M12 3v16M6 13l6 6 6-6" fill="none" stroke="'+(col||"currentColor")+'" stroke-width="2.4"/></svg>'}
+var DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function nowH(){return new Date().getHours()}
+function profile(){var h=nowH();for(var i=0;i<CFG.profiles.length;i++){var p=CFG.profiles[i];if(p.from<p.to?(h>=p.from&&h<p.to):(h>=p.from||h<p.to))return p}return CFG.profiles[0]}
+function mode(){var id=profile().id;return id=="night"?"evening":id}
+function applyProfile(force){var p=profile(),last=null;try{last=localStorage.getItem("profile")}catch(e){}
+ $("tone").style.opacity=p.warm;$("dimL").style.opacity=p.dim;
+ if(force||last!=p.id){if(HAS){Native.setVolume(p.volume);Native.setBrightness(Math.round(p.brightness*2.55))}try{localStorage.setItem("profile",p.id)}catch(e){}}}
+function getJSON(u){
+  if(HAS){return new Promise(function(res,rej){setTimeout(function(){var t=Native.get(u);t?res(JSON.parse(t)):rej("net")},0)})}
+  return fetch(u).then(function(r){return r.json()});
+}
+
+
+/* ---------- Port Kembla wave buoy (MHL, measured) ---------- */
+var BUOY=null;
+function loadBuoy(){getJSON("https://mhl.nsw.gov.au/s3/www/stations/wave/PTKMOW.json").then(function(j){
+  var ks=Object.keys(j.readings).sort(),rows=ks.slice(-24).map(function(k){var r=j.readings[k];return{t:new Date(k.replace(" ","T")+"+10:00"),hs:r["1033"],dir:r["1035"],tp:r["1036"]}}).filter(function(r){return r.hs!=null});
+  if(!rows.length)return;var L=rows[rows.length-1],age=(Date.now()-L.t)/36e5;if(age>6){BUOY=null;return}
+  var lh=localIdx(L.t),mod=M.hourly.wave_height&&M.hourly.wave_height[lh];
+  BUOY={hs:L.hs,dir:L.dir,tp:L.tp,t:L.t,idx:lh,model:mod,ratio:mod?Math.max(0.6,Math.min(1.6,L.hs/mod)):1,hist:rows.map(function(r){return r.hs})};
+  if(!openView)render()}).catch(function(){BUOY=null})}
+function localIdx(d){var t0=new Date(M.hourly.time[0]);return Math.round((d-t0)/36e5)-(new Date(M.hourly.time[0]).getTimezoneOffset()-d.getTimezoneOffset())/60}
+function swH(i){var v=M.hourly.swell_wave_height[i];if(!BUOY||v==null)return v;var k=i-BUOY.idx,w=k<0?1:Math.max(0,1-k/18);return v*(1+(BUOY.ratio-1)*w)}
+function buoyLine(){if(!BUOY)return"";var pct=Math.round((BUOY.ratio-1)*100);return"Buoy "+BUOY.hs.toFixed(1)+" m · "+Math.round(BUOY.tp)+" s · "+card(BUOY.dir)+(BUOY.model?" · forecast said "+BUOY.model.toFixed(1)+" m"+(Math.abs(pct)>=8?" (ratings "+(pct>0?"+":"")+pct+"%)":""):"")}
+function buoyBox(){if(!BUOY)return'<div class="box" style="margin-top:22px;font-size:20px;color:#8a8270">Port Kembla buoy isn\'t reporting right now, so ratings use the forecast only.</div>';
+ var mx=Math.max.apply(null,BUOY.hist.concat([0.5])),bars=BUOY.hist.map(function(v){return'<div style="flex:1;height:'+Math.max(4,Math.round(v/mx*60))+'px;background:#9fc3b2;border-radius:2px"></div>'}).join("");
+ return'<div class="box" style="margin-top:22px;display:flex;gap:30px;align-items:center"><div style="flex:1"><p class="lab" style="color:#8a8270">PORT KEMBLA BUOY · MEASURED '+hh(BUOY.t.getHours()).toUpperCase()+'</p><p style="font-size:26px;margin:10px 0 0">'+buoyLine()+'</p></div><div style="width:420px"><p class="lab" style="color:#8a8270;margin-bottom:8px">LAST 24 HOURS</p><div style="display:flex;gap:3px;align-items:flex-end;height:62px">'+bars+'</div></div></div>'}
+
+/* ---------- surf log: your own ratings teach the call ---------- */
+var LOGW=["Flat","Poor","OK","Good","Pumping"];
+function surfLog(){try{return JSON.parse(localStorage.getItem("surflog")||"[]")}catch(e){return[]}}
+function logSession(v){var k=v.split("|"),bn=k[0],r=+k[1],B=BREAKS.filter(function(x){return x.n==bn})[0],h=Math.max(nowH(),5),tn=tideNorm(M.hourly),pred=score(B,h,tn),H=F.hourly;
+ var L=surfLog().filter(function(x){return!(x.d==new Date().toDateString()&&x.b==bn)});
+ L.push({d:new Date().toDateString(),b:bn,r:r,pred:+pred.toFixed(2),swell:+swH(h).toFixed(1),dir:Math.round(M.hourly.swell_wave_direction[h]),wind:Math.round(H.wind_speed_10m[h]),wdir:Math.round(H.wind_direction_10m[h]),buoy:BUOY?BUOY.hs:null});
+ try{localStorage.setItem("surflog",JSON.stringify(L.slice(-200)))}catch(e){}
+ var mine=L.filter(function(x){return x.b==bn}).slice(-8),BI=bias();
+ if(mine.length){var sum=0,n=0;mine.forEach(function(x){if(x.pred>0.05){sum+=Math.max(0.1,x.r/5)/x.pred;n++}});if(n){var t=Math.max(0.6,Math.min(1.4,sum/n)),cur=BI[bn]||1;BI[bn]=+(cur+(t-cur)*0.3).toFixed(3);try{localStorage.setItem("bias",JSON.stringify(BI))}catch(e){}}}
+ if(HAS)Native.log(JSON.stringify({kind:"session",entry:L[L.length-1]}));
+ openDetail("break:"+bn,false);var el=$("dBody").querySelector('[data-log="'+v+'"]');if(el)setFocus(el)}
+function logRow(bn){var today=surfLog().filter(function(x){return x.d==new Date().toDateString()&&x.b==bn})[0],hist=surfLog().filter(function(x){return x.b==bn&&x.d!=new Date().toDateString()}).slice(-4).reverse();
+ return'<div style="display:flex;gap:14px;margin-top:22px;align-items:center"><p class="lab" style="color:#8a8270;margin-right:8px">SURFED HERE TODAY? HOW WAS IT</p>'+LOGW.map(function(w,i){var on=today&&today.r==i+1;return'<div class="app f" style="width:auto;padding:0 24px;'+(on?"background:#f6efe0;color:#1d1c16":"")+'" data-log="'+esc(bn)+'|'+(i+1)+'">'+w+'</div>'}).join("")+'</div>'+
+  (hist.length?'<p class="mono" style="margin:16px 0 0;font-size:15px;color:#8a8270">YOUR LAST SESSIONS · '+hist.map(function(x){return x.d.slice(4,10).toUpperCase()+" "+LOGW[x.r-1].toUpperCase()+" ("+x.swell+"M)"}).join(" · ")+'</p>':"")}
+/* ---------- scoring ---------- */
+function tideNorm(MH){var sl=MH.sea_level_height_msl.slice(0,24),mn=Math.min.apply(null,sl),mx=Math.max.apply(null,sl);return MH.sea_level_height_msl.map(function(v){return(v-mn)/((mx-mn)||1)})}
+function score(b,i,tn){var H=F.hourly,MH=M.hourly;
+ var sz=swH(i),sd=MH.swell_wave_direction[i],ws=H.wind_speed_10m[i],wd=H.wind_direction_10m[i];
+ var s=sz<b.mn?Math.max(0,1-(b.mn-sz)/b.mn):sz>b.mx?Math.max(0,1-(sz-b.mx)/b.mx):1;
+ var d=Math.max(0,1-dist(sd,b.sw)/60);
+ var w;if(ws<5)w=0.9;else if(inR(wd,b.off))w=ws<18?1:0.6;else{w=Math.max(0.05,1-(ws/20)*(dist(wd,b.off)/90))}
+ var t=tn[i],tf=1;if(b.tide=="lowmid")tf=t<0.65?1:0.7;if(b.tide=="mid")tf=(t>0.25&&t<0.75)?1:0.7;if(b.tide=="midhigh")tf=t>0.35?1:0.7;
+ var q=Math.min(1,0.45+sz/2.2);
+ return s*d*w*tf*q}
+function bias(){try{return JSON.parse(localStorage.getItem("bias")||"{}")}catch(e){return{}}}
+function jumpLimit(){try{return +(localStorage.getItem("jumpLimit")||14)}catch(e){return 14}}
+function rankBreaks(dayOff){var BI=bias();dayOff=dayOff||0;var tn=tideNorm(M.hourly),sr=new Date(F.daily.sunrise[dayOff]),fl=sr.getHours()+(sr.getMinutes()>0?1:0)+24*dayOff,last=19+24*dayOff;
+ if(dayOff===0&&nowH()>fl)fl=Math.min(nowH(),last);
+ var res=activeBreaks().map(function(b){var sc=[],best=0,bi=fl;for(var i=fl;i<=last;i++){var v=Math.min(1,score(b,i,tn)*(BI[b.n]||1));sc[i]=v;if(v>best){best=v;bi=i}}var s=bi,e=bi;while(s>fl&&sc[s-1]>=best*0.9&&e-s<3)s--;while(e<last&&sc[e+1]>=best*0.9&&e-s<3)e++;return{b:b,best:best,s:s,e:e}});
+ return res.sort(function(a,b){return b.best-a.best})}
+function jumpCall(dayOff){dayOff=dayOff||0;var H=F.hourly,o=24*dayOff,ok=[],bs=-1,bl=0,cs=-1;
+ for(var i=7+o;i<=18+o;i++){var lim=jumpLimit();ok[i]=H.wind_speed_10m[i]<lim&&H.wind_gusts_10m[i]<lim+6&&cloudBase(i)>=3500&&H.precipitation_probability[i]<35}
+ for(i=7+o;i<=19+o;i++){if(ok[i]){if(cs<0)cs=i;if(i-cs+1>bl){bl=i-cs+1;bs=cs}}else cs=-1}
+ return{call:bl>=4?"Go":bl>=2?"Marginal":"Hold",s:bs,l:bl}}
+function cloudBase(i){var H=F.hourly;if(H.cloud_cover_low&&H.cloud_cover_low[i]<40)return 99999;return Math.round((H.temperature_2m[i]-H.dew_point_2m[i])*410/100)*100}
+function lastLoad(d){var ss=new Date(F.daily.sunset[d||0]);ss.setMinutes(ss.getMinutes()-45);return ss.getHours()+":"+pad(ss.getMinutes())}
+function tides(from,to){var sl=M.hourly.sea_level_height_msl,out=[];for(var i=Math.max(1,from);i<Math.min(sl.length-1,to);i++){if(sl[i]<=sl[i-1]&&sl[i]<sl[i+1])out.push({i:i,t:"low",v:sl[i]});if(sl[i]>=sl[i-1]&&sl[i]>sl[i+1])out.push({i:i,t:"high",v:sl[i]})}return out}
+
+/* ---------- photos ---------- */
+var PH=[],phIdx=0,phLayer=0;
+function themeName(f){var m=f.match(/^\d\d_([a-z0-9-]+)__/);if(!m)return"Your photos";return m[1].replace(/-/g," ").replace(/\b\w/g,function(c){return c.toUpperCase()}).replace("Guam Saipan","Guam & Saipan").replace("Surf Skate","Surf & Skate").replace("Mountains Trails","Mountains & Trails").replace("Japan Travel","Japan & Travel").replace("Making Studio","Making & Studio")}
+var CAPS={};
+function initPhotos(){
+  if(!HAS)return;try{CAPS=JSON.parse(Native.readText("/sdcard/Pictures/TV-Morning/captions.json")||"{}")}catch(e){}var list=Native.photos();if(!list)return;PH=list.split("\n");
+  var d=new Date(),doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);phIdx=(doy*7)%PH.length;
+  var c=$("photos");c.innerHTML='<div class="ph" id="ph0"></div><div class="ph" id="ph1"></div>';showPhoto();
+  setInterval(function(){phIdx=(phIdx+1)%PH.length;showPhoto()},600000);
+}
+function showPhoto(){var f=PH[phIdx],el=$("ph"+phLayer),other=$("ph"+(1-phLayer));
+  el.style.backgroundImage="url('"+Native.photoDir()+encodeURIComponent(f)+"')";el.classList.add("on");other.classList.remove("on");phLayer=1-phLayer;
+  var cp=CAPS[f]||{};$("capT").textContent=themeName(f)+(cp.when?" · "+cp.when:"");$("capS").textContent="PHOTO "+(phIdx+1)+" OF "+PH.length;}
+
+/* ---------- home render ---------- */
+function clock(){var d=new Date();$("clock").textContent=d.getHours()+":"+pad(d.getMinutes());$("date").textContent=(DAYS[d.getDay()]+" "+d.getDate()+" "+MON[d.getMonth()]).toUpperCase()+" · WOLLONGONG"+(F?" · SUNSET "+hm(F.daily.sunset[0]):"");}
+function greet(){var m=mode(),H=F.hourly,day=F.daily,tmax=day.temperature_2m_max[0],wmax=0,rainAt=-1;
+ for(var i=Math.max(7,nowH());i<=19;i++){if(H.wind_speed_10m[i]>wmax)wmax=H.wind_speed_10m[i];if(rainAt<0&&H.precipitation_probability[i]>=50)rainAt=i}
+ var r=rankBreaks(0),j=jumpCall(0),feel=(tmax>=24?"Warm":tmax>=18?"Mild":"Cool")+(wmax<10?" and light":wmax<18?" and breezy":" and windy");
+ var hi=m=="morning"?"Morning":m=="day"?"Afternoon":"Evening";
+ var act;
+ if(m=="evening"){var j1=jumpCall(1),r1=rankBreaks(1);act=j1.call=="Go"?"Tomorrow looks good for jumping.":r1[0].best>0.6?"Tomorrow: "+r1[0].b.n.replace(/^.*$/,function(z){return short(z)})+" early.":"Quiet one tomorrow."}
+ else{act=(r[0].best>0.5?"Surf "+(r[0].s<=8?"early":"from "+hh(r[0].s))+". ":"")+(j.call=="Go"?"Jump from "+hh(j.s)+".":rainAt>0?"Rain from "+hh(rainAt)+".":"Dry all day.")}
+ $("greet").innerHTML=hi+", "+CFG.name+".<br>"+feel+". "+act;}
+function cardHTML(cls,open,lab,big,sub,extra){return '<div class="card '+cls+' f" data-open="'+open+'"><p class="lab">'+lab+'</p><p class="big">'+big+'</p><p class="sub">'+sub+'</p>'+(extra||"")+'</div>'}
+function renderCards(){var m=mode(),H=F.hourly,MH=M.hourly,day=F.daily,h=Math.max(nowH(),6),out="";
+ var r=rankBreaks(0),a=r[0],stars=Math.max(1,Math.min(5,Math.round(a.best*5))),bars="";for(var k=0;k<5;k++)bars+='<i class="'+(k<stars?"on":"")+'"></i>';
+ var surf=cardHTML("c-surf","surf","SURF",a.best<0.3?"Flat-ish":a.b.n,hh(a.s)+"–"+hh(a.e+1)+" · "+(BUOY?"buoy "+BUOY.hs.toFixed(1)+" m "+card(BUOY.dir):swH(h).toFixed(1)+" m "+card(MH.swell_wave_direction[h])),'<div class="bars">'+bars+'</div>');
+ var j=jumpCall(0),jh=j.s>0?j.s:Math.max(9,h);
+ var jump=cardHTML("c-jump","jump","JUMP · WOLLONGONG",j.call+' <span style="color:#f0b48f">'+arrow(H.wind_direction_10m[jh])+'</span>',(j.l>0?hh(j.s)+"–"+hh(j.s+j.l)+" · ":"")+card(H.wind_direction_10m[jh])+" "+Math.round(H.wind_speed_10m[jh])+" kt · "+(cloudBase(jh)>20000?"cloud clear":"base ~"+cloudBase(jh)+" ft")+" · last load ~"+lastLoad(0),'<p class="mono" style="margin:0;font-size:15px;color:#f0b48f">3K '+card(H.wind_direction_900hPa[jh])+" "+Math.round(H.wind_speed_900hPa[jh])+" · 9K "+card(H.wind_direction_700hPa[jh])+" "+Math.round(H.wind_speed_700hPa[jh])+" · 14K "+card(H.wind_direction_600hPa[jh])+" "+Math.round(H.wind_speed_600hPa[jh])+'</p>');
+ var sl=MH.sea_level_height_msl,rising=sl[h+1]>sl[h],tt=tides(h,h+24).slice(0,2);
+ var tide=cardHTML("c-tide","tide","TIDE · "+(rising?"RISING":"FALLING"),tideSVG(h,360,80,"#9fc3b2"),tt.map(function(t){return t.t+" ~"+hh(t.i)}).join(" · ")+" · water "+Math.round(MH.sea_surface_temperature[h])+"°");
+ var rainAt=-1;for(var i=h;i<=21;i++){if(H.precipitation_probability[i]>=50){rainAt=i;break}}
+ var rb="";for(i=h;i<h+10;i++){var p=H.precipitation_probability[i]||0;rb+='<div style="flex:1;height:'+Math.max(4,p*0.42)+'px;background:'+(p>=50?"#8fb3c8":"#4b6578")+';border-radius:3px"></div>'}
+ var wx=cardHTML("c-wx","weather","TODAY",Math.round(day.temperature_2m_max[0])+"° · "+(rainAt>0?"rain "+hh(rainAt):"dry"),"UV "+Math.round(day.uv_index_max[0])+" · next 10 hours ↓",'<div style="display:flex;gap:6px;align-items:flex-end;height:44px;margin-top:4px">'+rb+'</div>');
+ var C={surf:surf,jump:jump,tide:tide,weather:wx};
+ {
+   var j1=jumpCall(1),r1=rankBreaks(1);
+   var tom=cardHTML("c-tom","tomorrow","TOMORROW","Jump: "+j1.call,(j1.l>0?hh(j1.s-24)+"–"+hh(j1.s-24+j1.l)+" · ":"")+"Surf: "+r1[0].b.n.replace(/^.*$/,function(z){return short(z)})+" "+hh(r1[0].s-24));
+   var top=EV.syd.filter(forYou)[0]||EV.gong[0]||EV.syd[0];var syd=cardHTML("c-syd","events","ON THIS WEEK",top?'<span style="font-size:32px">'+esc(top.title.length>34?top.title.slice(0,32)+"…":top.title)+'</span>':"Gigs &amp; club nights",top?esc(dayLabel(top.start)+" · "+top.venue):"Open to see Wollongong and Sydney");
+   C.tomorrow=tom;C.events=syd;
+ }
+ out=(PREFS.cards[m]||PDEF.cards[m]).map(function(k){return C[k]||""}).join("");
+ $("cards").innerHTML=out;}
+function tideSVG(h,w,ht,col){var sl=M.hourly.sea_level_height_msl,mn=Math.min.apply(null,sl.slice(h,h+24)),mx=Math.max.apply(null,sl.slice(h,h+24)),pts=[];
+ for(var i=0;i<=24;i++){var v=sl[h+i];if(v==null)break;pts.push((i/24*w).toFixed(1)+","+(ht-6-((v-mn)/((mx-mn)||1))*(ht-12)).toFixed(1))}
+ return '<svg width="100%" height="'+ht+'" viewBox="0 0 '+w+' '+ht+'" preserveAspectRatio="none"><polyline points="'+pts.join(" ")+'" fill="none" stroke="'+col+'" stroke-width="3"/><circle cx="8" cy="'+pts[0].split(",")[1]+'" r="7" fill="#f6efe0"/></svg>'}
+function renderDock(){var m=mode(),names=m=="evening"?CFG.dockEvening:CFG.dockMorning,h="",used=[],n=0;readTV();renderPlay();
+ RECENT.slice(0,2).forEach(function(a){if(n<5){used.push(a[1]);n++;h+='<div class="app f np" data-launch="'+esc(a[1])+'"><span class="mono" style="font-size:12px;color:#e08a4f;margin-right:10px">BACK IN</span>'+esc(a[0])+'</div>'}});
+ names.forEach(function(nm){var a=CFG.apps.filter(function(x){return x[0]==nm})[0];if(a&&used.indexOf(a[1])<0&&n<5){n++;h+='<div class="app f" data-launch="'+a[1]+'">'+a[0]+'</div>'}});
+ h+='<div class="app f" data-open="events">Events</div><div class="app f" data-open="apps">All apps</div><div class="app f" data-launch="com.tcl.tv">Inputs</div><div class="app f" data-open="settings" style="width:150px;color:#b9ae96">Customise</div>';
+ $("dock").innerHTML=h;}
+function renderWeekLine(){var d=new Date(),h="";if(!CAL.length){$("weekLine").innerHTML='<span style="color:#b9ae96">Connect your calendar to see the week</span>';return}
+ CAL.filter(function(e){return e.start>=new Date(d.getFullYear(),d.getMonth(),d.getDate())}).slice(0,3).forEach(function(e,i){var today=e.start.toDateString()==d.toDateString();h+='<span><b style="font-weight:500;'+(today?"color:#e08a4f":"")+'">'+(today?"Today":DAYS[e.start.getDay()])+'</b> '+(e.allDay?"":e.start.getHours()+":"+pad(e.start.getMinutes())+" ")+esc(e.title)+'</span>'});
+ $("weekLine").innerHTML=h;}
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+
+/* ---------- detail views ---------- */
+function fbRow(kind){return '<div style="display:flex;gap:16px;margin-top:26px;align-items:center"><p class="lab" style="color:#8a8270;margin-right:10px">WAS TODAY\'S CALL RIGHT?</p>'+[["right","Spot on"],["opt","Too optimistic"],["pess","Too pessimistic"]].map(function(x){return '<div class="app f" style="width:auto;padding:0 26px" data-fb="'+kind+'|'+x[0]+'">'+x[1]+'</div>'}).join("")+'<p id="fbDone" class="mono" style="color:#9fd4a8;margin:0 0 0 12px"></p></div>'}
+function feedback(v){var k=v.split("|"),kind=k[0],ans=k[1],day=new Date().toDateString(),r=rankBreaks(0),j=jumpCall(0);
+ if(kind=="surf"){var BI=bias(),n=r[0].b.n,b=BI[n]||1;if(ans=="opt")b=Math.max(0.6,b*0.9);if(ans=="pess")b=Math.min(1.4,b*1.1);BI[n]=+b.toFixed(3);try{localStorage.setItem("bias",JSON.stringify(BI))}catch(e){}}
+ if(kind=="jump"){var L=jumpLimit();if(ans=="opt")L=Math.max(10,L-1);if(ans=="pess")L=Math.min(18,L+1);try{localStorage.setItem("jumpLimit",L)}catch(e){}}
+ var H=F.hourly,MH=M.hourly,h=Math.max(nowH(),6);
+ if(HAS)Native.log(JSON.stringify({day:day,kind:kind,answer:ans,top:r[0].b.n,window:hh(r[0].s)+"-"+hh(r[0].e+1),jump:j.call,swell:swH(h),swellDir:MH.swell_wave_direction[h],wind:H.wind_speed_10m[h],windDir:H.wind_direction_10m[h]}));
+ var d=$("fbDone");if(d)d.textContent="Saved · the calls will adjust"}
+var openView=null,viewStack=[];
+function openDetail(v,push){if(push&&openView)viewStack.push(openView);else if(push===undefined)viewStack=[];openView=v;var t="",s="",b="";var H=F.hourly,MH=M.hourly,h=Math.max(nowH(),5);
+ if(v=="surf"){t="Where to paddle out";s="Every Illawarra break, best window today, plus the week";
+   var r=rankBreaks(0);b='<div class="row"><div class="box" style="flex:1.3"><table class="tbl"><tr><th>BREAK</th><th>BEST WINDOW</th><th>RATING</th><th>WHY</th></tr>'+r.map(function(x){var st=Math.round(x.best*5);return'<tr class="f brow" data-break="'+esc(x.b.n)+'"><td class="serif" style="font-size:26px">'+x.b.n+'</td><td class="mono">'+(x.best<0.25?"—":hh(x.s)+"–"+hh(x.e+1))+'</td><td>'+"●".repeat(st)+'<span style="color:#3b3a2e">'+"●".repeat(5-st)+'</span></td><td style="font-size:18px;color:#b9ae96">'+x.b.why+'</td></tr>'}).join("")+'</table></div>';
+   b+='<div style="flex:1"><p class="lab" style="color:#8a8270;margin-bottom:12px">SWELL THIS WEEK</p><div class="days" style="grid-template-columns:repeat(1,1fr);gap:8px">'+weekSwell()+'</div></div></div>'+buoyBox()+fbRow("surf")}
+
+ if(v.indexOf("break:")==0){var bn=v.slice(6),B=BREAKS.filter(function(x){return x.n==bn})[0],tn=tideNorm(M.hourly),BI=bias(),cells="";t=bn;s=B.why;
+   var sr=new Date(F.daily.sunrise[0]),fl=sr.getHours()+(sr.getMinutes()>0?1:0);
+   for(var i=fl;i<=19;i++){var sc=Math.min(1,score(B,i,tn)*(BI[B.n]||1)),hgt=Math.round(sc*220),now=i==nowH();
+    cells+='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1"><div style="height:230px;display:flex;align-items:flex-end"><div style="width:46px;height:'+Math.max(6,hgt)+'px;border-radius:8px;background:'+(sc>0.7?"#e08a4f":sc>0.45?"#c9a46a":"#4a4838")+'"></div></div>'+
+     '<p class="mono" style="margin:0;font-size:14px;color:'+(now?"#e08a4f":"#8a8270")+'">'+hh(i).toUpperCase()+'</p><p style="margin:0;font-size:17px">'+swH(i).toFixed(1)+'m</p><p style="margin:0;font-size:16px;color:#9fc3b2">'+arrow(H.wind_direction_10m[i],inR(H.wind_direction_10m[i],B.off)?"#9fd4a8":"#e58b7a")+Math.round(H.wind_speed_10m[i])+'</p></div>'}
+   b='<div class="box"><p class="lab" style="color:#8a8270;margin-bottom:14px">HOW GOOD, HOUR BY HOUR · TALLER IS BETTER · GREEN ARROW = OFFSHORE</p><div style="display:flex;gap:6px">'+cells+'</div></div>'+
+     '<div class="row" style="margin-top:22px"><div class="box" style="flex:1"><p class="lab" style="color:#8a8270">LIKES</p><p style="font-size:22px;margin:10px 0 0">Swell from '+card(B.sw[0])+' to '+card(B.sw[1])+' · '+B.mn+'–'+B.mx+' m · '+(B.tide=="any"?"any tide":B.tide.replace("lowmid","low to mid").replace("midhigh","mid to high")+" tide")+'</p></div><div class="box" style="flex:1.2">'+tideSVG(fl,600,90,"#9fc3b2")+'</div></div>'+logRow(bn)}
+ if(v=="jump"){t="Jump call · Wollongong";s="Ground and upper winds through the day, and the week ahead";
+   var rows="";for(var i=7;i<=18;i++){rows+='<tr><td class="mono">'+hh(i)+'</td><td>'+arrow(H.wind_direction_10m[i],"#f0b48f")+" "+card(H.wind_direction_10m[i])+" "+Math.round(H.wind_speed_10m[i])+'</td><td>'+Math.round(H.wind_gusts_10m[i])+'</td><td>'+(cloudBase(i)>20000?"clear":cloudBase(i)+" ft")+'</td><td>'+H.precipitation_probability[i]+'%</td><td>'+card(H.wind_direction_900hPa[i])+" "+Math.round(H.wind_speed_900hPa[i])+'</td><td>'+card(H.wind_direction_700hPa[i])+" "+Math.round(H.wind_speed_700hPa[i])+'</td><td>'+card(H.wind_direction_600hPa[i])+" "+Math.round(H.wind_speed_600hPa[i])+'</td></tr>'}
+   b='<div class="row"><div class="box" style="flex:1.6"><table class="tbl" style="font-size:20px"><tr><th>TIME</th><th>GROUND KT</th><th>GUST</th><th>CLOUD BASE</th><th>RAIN</th><th>3K FT</th><th>9K FT</th><th>14K FT</th></tr>'+rows+'</table></div><div style="flex:1"><p class="lab" style="color:#8a8270;margin-bottom:12px">THIS WEEK</p><div class="days" style="grid-template-columns:1fr;gap:8px">'+weekJump()+'</div></div></div>'+fbRow("jump")}
+ if(v=="tide"){t="Tides";s="Next 48 hours at Wollongong (model estimate, check BOM for exact times)";
+   var tt=tides(h,h+48);b='<div class="box">'+tideSVG(h,1700,300,"#9fc3b2").replace('width="100%"','width="1700"')+'<div style="display:flex;gap:40px;margin-top:20px;font-size:24px">'+tt.map(function(x){return'<span><span class="mono" style="color:#8a8270">'+x.t.toUpperCase()+'</span> '+DAYS[new Date(H.time[x.i]).getDay()]+" ~"+hh(x.i)+'</span>'}).join("")+'</div><p style="margin:20px 0 0;font-size:22px;color:#b9ae96">Water '+Math.round(MH.sea_surface_temperature[h])+'° · swell '+swH(h).toFixed(1)+' m '+card(MH.swell_wave_direction[h])+' at '+Math.round(MH.swell_wave_period[h])+' s</p></div>'}
+ if(v=="weather"){t="Weather today";s="Hour by hour, and the rain radar";
+   var cells="";for(var i=Math.max(6,nowH());i<=22;i+=2){cells+='<div class="day" style="min-height:0;text-align:center"><p class="mono" style="margin:0;color:#8a8270;font-size:14px">'+hh(i).toUpperCase()+'</p><p class="serif" style="margin:6px 0;font-size:40px">'+Math.round(H.temperature_2m[i])+'°</p><p style="margin:0;font-size:18px">'+arrow(H.wind_direction_10m[i],"#9fc3b2")+" "+Math.round(H.wind_speed_10m[i])+'</p><p style="margin:4px 0 0;font-size:17px;color:#8fb3c8">'+H.precipitation_probability[i]+'%</p></div>'}
+   b='<div class="days" style="grid-template-columns:repeat(9,1fr)">'+cells+'</div><div class="row" style="margin-top:26px"><div id="radar"></div><div class="box" style="flex:1"><p class="lab" style="color:#8a8270">TODAY</p><p class="serif" style="font-size:44px;margin:8px 0">'+Math.round(F.daily.temperature_2m_max[0])+'° high · UV '+Math.round(F.daily.uv_index_max[0])+'</p><p style="font-size:22px;color:#b9ae96;margin:0">Sunrise '+hm(F.daily.sunrise[0])+' · sunset '+hm(F.daily.sunset[0])+'</p><p id="radarT" class="mono" style="font-size:16px;color:#8fb3c8;margin-top:24px">Loading radar…</p></div></div>';setTimeout(radar,50)}
+ if(v=="week"){t="This week";s=CAL.length?"From your Google Calendar":"Calendar not connected yet";b='<div class="days">'+weekCal()+'</div>'}
+ if(v=="tomorrow"){t="Tomorrow";var j1=jumpCall(1),r1=rankBreaks(1);s="Jump "+j1.call+" · best surf "+r1[0].b.n;b='<div class="row"><div class="box" style="flex:1"><p class="lab" style="color:#f0b48f">JUMP</p><p class="serif" style="font-size:56px;margin:8px 0">'+j1.call+'</p><p style="font-size:22px;color:#b9ae96">'+(j1.l>0?"Window "+hh(j1.s)+"–"+hh(j1.s+j1.l):"No clean window")+'</p></div><div class="box" style="flex:1.4"><p class="lab" style="color:#e7c98f">SURF</p>'+r1.slice(0,4).map(function(x){return'<p style="font-size:24px;margin:10px 0"><span class="serif">'+x.b.n+'</span> <span class="mono" style="color:#b9ae96">'+hh(x.s)+"–"+hh(x.e+1)+'</span></p>'}).join("")+'</div></div>'}
+ if(v=="events"){t="On this week";s="Next 7 days";loadEvents();$("dTitle").textContent=t;$("dSub").textContent=s;$("detail").className="open";renderEvents();return}
+ if(v=="sydney"){t="Sydney this week";s="Most popular club nights on Resident Advisor, next 7 days";loadSydney();
+   b=SYD.length?'<div class="box"><table class="tbl"><tr><th>DAY</th><th>EVENT</th><th>VENUE</th><th>LINE-UP</th></tr>'+SYD.map(function(x){return'<tr><td class="mono">'+DAYS[x.day.getDay()].toUpperCase()+" "+x.day.getDate()+'</td><td class="serif" style="font-size:24px">'+esc(x.title)+'</td><td>'+esc(x.venue)+'</td><td style="font-size:17px;color:#b9ae96">'+esc(x.artists)+'</td></tr>'}).join("")+'</table></div>':'<div class="box" style="font-size:24px;color:#b9ae96">Listings didn\'t load. Check the Wi-Fi.</div>'}
+ if(v=="settings"){$("dTitle").textContent="Customise";$("dSub").textContent="Changes save straight away and stay on the TV";$("detail").className="open";renderSettings();return}
+ if(v=="apps"){t="All apps";s="";b='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:20px">'+CFG.apps.map(function(a){return'<div class="app f" style="width:auto;height:120px;font-size:24px" data-launch="'+a[1]+'">'+a[0]+'</div>'}).join("")+'</div>'}
+ var NAVV=[["surf","Surf"],["jump","Jump"],["tide","Tide"],["weather","Weather"],["week","Week"],["tomorrow","Tomorrow"],["events","Events"]];
+ if(NAVV.some(function(x){return x[0]==v})&&v!="events"){var chips=NAVV.filter(function(x){return x[0]!=v}).map(function(x){return'<div class="app f" style="width:auto;padding:0 20px;height:54px;font-size:17px" data-open="'+x[0]+'">'+x[1]+'</div>'}).join(""),FB='<p id="fbDone" class="mono" style="color:#9fd4a8;margin:0 0 0 12px"></p></div>';
+  if(b.indexOf(FB)>=0)b=b.replace(FB,'<p id="fbDone" class="mono" style="color:#9fd4a8;margin:0 0 0 12px"></p><div style="margin-left:auto;display:flex;gap:10px">'+chips+'</div></div>');
+  else b+='<div style="display:flex;gap:12px;margin-top:26px;align-items:center"><p class="lab" style="color:#8a8270;margin-right:8px">ALSO</p>'+chips+'</div>'}
+ $("dTitle").textContent=t;$("dSub").textContent=s;$("dBody").innerHTML=b;$("detail").className="open";reportState();
+ var first=$("dBody").querySelector(".f");setFocus(first||null);
+}
+function closeDetail(){var was=openView;openView=null;viewStack=[];$("detail").className="";if(was=="settings"&&F)render();else focusFirst()}
+function weekSwell(){var D=W.daily,h="";for(var i=0;i<7;i++){var d=new Date(D.time[i]);h+='<div class="day" style="min-height:0;display:flex;justify-content:space-between;padding:12px 18px"><span class="mono">'+DAYS[d.getDay()].toUpperCase()+'</span><span>'+D.swell_wave_height_max[i].toFixed(1)+' m '+card(D.swell_wave_direction_dominant[i])+'</span><span style="color:#b9ae96">'+Math.round(D.swell_wave_period_max[i])+' s</span></div>'}return h}
+function weekJump(){var D=F.daily,h="";for(var i=0;i<7;i++){var j=jumpCall(i),d=new Date(D.time[i]),c=j.call=="Go"?"go":j.call=="Marginal"?"marg":"hold";h+='<div class="day" style="min-height:0;display:flex;justify-content:space-between;padding:12px 18px"><span class="mono">'+DAYS[d.getDay()].toUpperCase()+'</span><span class="'+c+'">'+j.call+'</span><span style="color:#b9ae96">'+(j.l>0?hh(j.s-24*i)+"–"+hh(j.s-24*i+j.l):"")+'</span></div>'}return h}
+function weekCal(){var d0=new Date(),h="";d0.setHours(0,0,0,0);for(var i=0;i<7;i++){var d=new Date(d0.getTime()+i*864e5),ev=CAL.filter(function(e){return e.start.toDateString()==d.toDateString()});
+ h+='<div class="day'+(i==0?" today":"")+'"><p class="mono" style="margin:0 0 10px;color:#e08a4f">'+DAYS[d.getDay()].toUpperCase()+" "+d.getDate()+'</p>'+(ev.length?ev.slice(0,5).map(function(e){return'<p style="margin:6px 0;font-size:18px">'+(e.allDay?"":'<span class="mono" style="color:#8a8270">'+e.start.getHours()+":"+pad(e.start.getMinutes())+'</span> ')+esc(e.title)+'</p>'}).join(""):'<p style="color:#5f5a4c;margin:0">Free</p>')+'</div>'}return h}
+
+/* ---------- rain radar (RainViewer) ---------- */
+function lon2x(lon,z){return(lon+180)/360*Math.pow(2,z)}function lat2y(lat,z){var r=lat*Math.PI/180;return(1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*Math.pow(2,z)}
+function radar(){var box=$("radar");if(!box)return;var z=7,cx=lon2x(CFG.lon,z),cy=lat2y(CFG.lat,z),x0=Math.floor(cx)-1,y0=Math.floor(cy)-1,ox=-(cx-Math.floor(cx))*256+128,oy=-(cy-Math.floor(cy))*256+128;
+ var base="";for(var dx=0;dx<4;dx++)for(var dy=0;dy<3;dy++){base+='<img src="https://a.basemaps.cartocdn.com/dark_all/'+z+'/'+(x0+dx)+'/'+(y0+dy)+'.png" style="left:'+(dx*256+ox)+'px;top:'+(dy*256+oy-100)+'px">'}
+ box.innerHTML=base+'<div id="rlayer"></div><div style="position:absolute;left:'+(384-6)+'px;top:'+(256-6-100+128)+'px;width:12px;height:12px;border-radius:50%;background:#e08a4f"></div>';
+ getJSON("https://api.rainviewer.com/public/weather-maps.json").then(function(j){var fr=j.radar.past.slice(-8),k=0;function step(){var f=fr[k%fr.length],L=$("rlayer");if(!L)return;var t="";for(var dx=0;dx<4;dx++)for(var dy=0;dy<3;dy++){t+='<img src="'+j.host+f.path+'/256/'+z+'/'+(x0+dx)+'/'+(y0+dy)+'/2/1_1.png" style="left:'+(dx*256+ox)+'px;top:'+(dy*256+oy-100)+'px;opacity:.85">'}L.innerHTML=t;var d=new Date(f.time*1000);$("radarT").textContent="RADAR "+d.getHours()+":"+pad(d.getMinutes())+(k%fr.length==fr.length-1?" · LATEST":"");k++;if(openView=="weather")setTimeout(step,k%fr.length==0?2000:700)}step()}).catch(function(){$("radarT").textContent="Radar unavailable right now"})}
+
+/* ---------- events this week: Wollongong + Sydney ---------- */
+/* Main lists: Moshtix gigs for Wollongong, Resident Advisor club nights for Sydney.
+   Eventbrite is noisy, so it sits behind a "show everything else" row. */
+var EV={gong:[],syd:[],gongMore:[],sydMore:[]},evDay="",evTab="gong",evAll=false,EVSHOW=[];
+var TASTE=["house","deep house","disco","garage","minimal","tech house","minimal techno","electro","jazz"];
+var JUNK=["psychic","medium","singles","mixer","networking","brunch","class","workshop","course","bingo","cruise","bar crawl","webinar","sound bath","healing","tour and garden","garden visit","champion"];
+function decodeHtml(x){var t=document.createElement("textarea");t.innerHTML=x||"";return t.value}
+function d0(){var d=new Date();d.setHours(0,0,0,0);return d}
+function inWeek(d){var a=d0();return d>=a&&d<new Date(a.getTime()+7*864e5)}
+function ldEvents(url,src){var out=[];if(!HAS)return out;var t=Native.get(url);if(!t)return out;
+ var re=/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/g,m;
+ while((m=re.exec(t))){var d;try{d=JSON.parse(m[1])}catch(e){continue}
+  (Array.isArray(d)?d:[d]).forEach(function(it){var items=[];if(it["@type"]=="ItemList")items=(it.itemListElement||[]).map(function(x){return x.item||x});else if(String(it["@type"]||"").indexOf("Event")>=0)items=[it];
+   items.forEach(function(e){if(!e||!e.startDate)return;var st=new Date(e.startDate.length<=10?e.startDate+"T12:00:00":e.startDate);if(!inWeek(st))return;
+    var loc=e.location||{};if(Array.isArray(loc))loc=loc[0]||{};var ad=loc.address||{};
+    var addr=typeof ad=="string"?ad:[ad.streetAddress,ad.addressLocality].filter(Boolean).join(", ");
+    var perf=e.performer;perf=Array.isArray(perf)?perf.map(function(p){return p.name}).join(", "):(perf&&perf.name)||"";
+    var of=e.offers;if(Array.isArray(of))of=of[0];var cost=of?(of.lowPrice||of.price):"";
+    out.push({src:src,title:decodeHtml(e.name).replace(/\s*[–-]\s*WOLLONGONG$/i,"").replace(/\s*\/\/\s*La La La's Wollongong$/i,""),who:decodeHtml(perf),start:st,timed:e.startDate.length>10,end:e.endDate&&e.endDate.length>10?new Date(e.endDate):null,venue:decodeHtml(loc.name||""),addr:decodeHtml(addr),cost:cost?("$"+String(cost).replace(/^\$/,"").replace(/\.00$/,"")):"",genres:"",rank:out.length})})})}
+ return out}
+function raEvents(){var out=[];if(!HAS||!Native.post)return out;var a=d0(),b=new Date(a.getTime()+6*864e5);
+ var q='query{eventListings(filters:{areas:{eq:1},listingDate:{gte:"'+ymd(a)+'",lte:"'+ymd(b)+'"}},pageSize:50,page:1,sort:{attending:{priority:1,order:DESCENDING}}){data{event{title date startTime endTime cost genres{name} venue{name address} artists{name}}}}}';
+ try{var j=JSON.parse(Native.post("https://ra.co/graphql",JSON.stringify({query:q}),"https://ra.co/events/au/sydney"));
+  j.data.eventListings.data.forEach(function(x,i){var e=x.event;out.push({src:"Resident Advisor",rank:i,title:e.title,who:(e.artists||[]).map(function(a){return a.name}).join(", "),genres:(e.genres||[]).map(function(g){return g.name}).join(", "),start:new Date(e.startTime||e.date),timed:!!e.startTime,end:e.endTime?new Date(e.endTime):null,venue:e.venue?e.venue.name:"TBA",addr:e.venue&&e.venue.address?e.venue.address.replace(/;\s*/g,", ").replace(/, Australia$/,""):"",cost:e.cost?("$"+String(e.cost).replace(/^\$/,"")):""})})}catch(err){}
+ return out}
+function forYou(e){var g=(e.genres||"").toLowerCase();return TASTE.some(function(t){return g.split(", ").indexOf(t)>=0})}
+function dedupe(l){var seen={};return l.filter(function(e){var k=(e.title.replace(/[^a-z0-9]/gi,"").slice(0,24)+"|"+e.start.toDateString()).toLowerCase();if(seen[k])return false;seen[k]=1;return true})}
+function byDay(a,b){return a.start.toDateString()==b.start.toDateString()?a.rank-b.rank:a.start-b.start}
+function cleanUp(l){var h=JUNK.concat(CFG.eventHide||[]).map(function(x){return x.toLowerCase()});return l.filter(function(e){var t=(e.title+" "+e.venue).toLowerCase();return !h.some(function(x){return t.indexOf(x)>=0})})}
+function loadEvents(force){var d=new Date().toDateString();if(!force&&evDay==d&&(EV.gong.length||EV.syd.length))return;
+ var g=[];["wollongong","illawarra","thirroul","kiama"].forEach(function(q){g=g.concat(ldEvents("https://www.moshtix.com.au/v2/search?query="+q,"Moshtix"))});
+ EV.gong=dedupe(g).sort(byDay);
+ EV.gongMore=cleanUp(dedupe(ldEvents("https://www.eventbrite.com.au/d/australia--wollongong/events--this-week/","Eventbrite"))).filter(function(e){return /wollongong|thirroul|austinmer|bulli|corrimal|fairy meadow|shellharbour|kiama|port kembla|figtree|woonona|unanderra|warrawong|dapto|oak flats/i.test(e.addr+" "+e.venue)}).sort(byDay);
+ EV.syd=dedupe(raEvents()).sort(byDay);
+ EV.sydMore=cleanUp(dedupe(ldEvents("https://www.eventbrite.com.au/d/australia--sydney/events--this-week/","Eventbrite"))).sort(byDay);
+ SYD=EV.syd;evDay=d}
+function evWhen(e){var s=DAYS[e.start.getDay()]+" "+e.start.getDate()+" "+MON[e.start.getMonth()];if(e.timed){s+=" · "+tm(e.start);if(e.end)s+=" – "+tm(e.end)}return s}
+function tm(d){var h=d.getHours(),m=d.getMinutes();return(h%12||12)+(m?":"+pad(m):"")+(h<12?"am":"pm")}
+function dayLabel(d){var a=d0(),k=Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-a)/864e5);return k==0?"Tonight":k==1?"Tomorrow":DAYS[d.getDay()]+" "+d.getDate()}
+function evVisible(){var main=EV[evTab]||[],more=EV[evTab+"More"]||[];
+ if(evTab=="syd"&&!evAll){var fy={},ot={};main=main.filter(function(e){var k=e.start.toDateString();fy[k]=fy[k]||0;ot[k]=ot[k]||0;if(forYou(e)&&fy[k]<3){fy[k]++;return true}if(!forYou(e)&&ot[k]<1){ot[k]++;return true}return false})}
+ return evAll?main.concat(more.map(function(e){e.more=1;return e})).sort(byDay):main}
+function evList(){EVSHOW=evVisible();var h="",last="";
+ if(!EVSHOW.length)h+='<p style="color:#8a8270;font-size:22px;margin:12px 16px">Nothing listed for this week yet.</p>';
+ EVSHOW.forEach(function(e,i){var dl=dayLabel(e.start);if(dl!=last){h+='<p class="mono" style="margin:'+(last?"18px":"6px")+' 16px 6px;color:#8a8270;font-size:14px;letter-spacing:.08em">'+dl.toUpperCase()+'</p>';last=dl}
+  h+='<div class="f evrow" data-ev="'+i+'" style="display:flex;gap:14px;padding:11px 16px;border-radius:12px;align-items:center"><span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:'+(forYou(e)?"#e08a4f":"transparent")+'"></span><span style="font-size:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'+(e.more?"color:#b9ae96":"")+'">'+esc(e.title)+'<span style="color:#8a8270"> · '+esc(e.venue)+'</span></span></div>'});
+ var all=(EV[evTab]||[]).length+(EV[evTab+"More"]||[]).length;
+ if(!evAll&&all>EVSHOW.length)h+='<div class="f evrow" data-more="1" style="padding:14px 16px;border-radius:12px;margin-top:10px;color:#b9ae96;font-size:19px">Show everything · '+all+' events</div>';
+ if(evAll)h+='<div class="f evrow" data-more="0" style="padding:14px 16px;border-radius:12px;margin-top:10px;color:#b9ae96;font-size:19px">Show the short list</div>';
+ return h}
+function evPanel(i){var e=EVSHOW[i],P=$("evPanel");if(!P)return;if(!e){P.innerHTML="";return}
+ function row(k,v){return v?'<p class="lab" style="color:#8a8270;margin:24px 0 6px">'+k+'</p><p style="margin:0;font-size:24px;line-height:1.35">'+esc(v)+'</p>':""}
+ P.innerHTML=(forYou(e)?'<p class="mono" style="margin:0 0 10px;color:#e08a4f;font-size:14px;letter-spacing:.08em">● YOUR KIND OF NIGHT</p>':'')+'<p class="serif" style="margin:0;font-size:44px;line-height:1.08">'+esc(e.title)+'</p>'+row("WHO",e.who||"Line-up not listed")+row("WHEN",evWhen(e))+row("WHERE",e.venue+(e.addr?" · "+e.addr:""))+row("SOUND",e.genres)+row("COST",e.cost)+'<p class="mono" style="margin:28px 0 0;color:#5f5a4c;font-size:14px">VIA '+esc(e.src).toUpperCase()+'</p>'}
+function evTabs(){return[["gong","Wollongong"],["syd","Sydney"]].map(function(t){return'<div class="app f" data-tab="'+t[0]+'" style="width:auto;padding:0 28px;height:58px;'+(evTab==t[0]?"background:#f6efe0;color:#1d1c16":"")+'">'+t[1]+'</div>'}).join("")}
+function renderEvents(){$("dBody").innerHTML='<div style="display:flex;gap:14px;margin-bottom:18px;align-items:center">'+evTabs()+'<p class="mono" style="margin:0 0 0 auto;color:#8a8270;font-size:14px"><span style="color:#e08a4f">●</span> YOUR KIND OF NIGHT</p></div><div class="row" style="height:690px"><div id="evList" class="box" style="flex:1.25;overflow:hidden;padding:12px">'+evList()+'</div><div id="evPanel" class="box" style="flex:1;padding:30px 34px"></div></div>';
+ var first=$("dBody").querySelector(".evrow")||$("dBody").querySelector(".f");setFocus(first);}
+/* ---------- Sydney club nights (Resident Advisor) ---------- */
+var SYD=[],sydDay="";
+function ymd(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function loadSydney(){if(!HAS||!Native.post)return;var d=new Date();if(sydDay==d.toDateString()&&SYD.length)return;
+ var e=new Date(d.getTime()+7*864e5),q='query{eventListings(filters:{areas:{eq:1},listingDate:{gte:"'+ymd(d)+'",lte:"'+ymd(e)+'"}},pageSize:12,page:1,sort:{attending:{priority:1,order:DESCENDING}}){data{event{title date venue{name} artists{name}}}}}';
+ try{var t=Native.post("https://ra.co/graphql",JSON.stringify({query:q}),"https://ra.co/events/au/sydney"),j=JSON.parse(t);
+  SYD=j.data.eventListings.data.map(function(x){var ev=x.event;return{title:ev.title,day:new Date(ev.date.slice(0,10)+"T12:00:00"),venue:ev.venue?ev.venue.name:"TBA",artists:(ev.artists||[]).map(function(a){return a.name}).join(", ")}}).sort(function(a,b){return a.day-b.day});sydDay=d.toDateString()}catch(err){}}
+var SHORT={"Sandon Point":"Sandon","Bulli Point":"Bulli","North Wollongong":"North Gong","Port Kembla":"Port Kembla","Windang Island":"Windang","The Farm":"The Farm"};
+function short(n){return SHORT[n]||n}
+function sydLine(x){return DAYS[x.day.getDay()]+" · "+x.venue}
+/* ---------- calendar (iCal) ---------- */
+function loadCal(){if(!CFG.calendarIcs||!HAS)return;var t=Native.get(CFG.calendarIcs);if(!t)return;var ev=[],cur=null;
+ t.replace(/\r\n[ \t]/g,"").split(/\r?\n/).forEach(function(l){if(l=="BEGIN:VEVENT")cur={ex:{}};else if(l=="END:VEVENT"){if(cur&&cur.start&&cur.status!="CANCELLED")ev.push(cur);cur=null}else if(cur){var k=l.split(":")[0],v=l.slice(l.indexOf(":")+1);
+  if(k.indexOf("SUMMARY")==0)cur.title=v.replace(/\\,/g,",").replace(/\\;/g,";");
+  if(k.indexOf("DTSTART")==0){cur.allDay=v.length==8;cur.start=icsDate(v)}
+  if(k.indexOf("RRULE")==0)cur.rrule=v;
+  if(k.indexOf("STATUS")==0)cur.status=v;
+  if(k.indexOf("EXDATE")==0)v.split(",").forEach(function(x){cur.ex[icsDate(x).toDateString()]=1})}});
+ var now=new Date(),d0=new Date(now);d0.setHours(0,0,0,0);var wk=new Date(d0.getTime()+8*864e5),out=[];
+ ev.forEach(function(e){
+  if(!e.rrule){if(e.start>=d0&&e.start<wk)out.push(e);return}
+  var r={};e.rrule.split(";").forEach(function(p){var kv=p.split("=");r[kv[0]]=kv[1]});
+  var until=r.UNTIL?icsDate(r.UNTIL):null,iv=+(r.INTERVAL||1),by=r.BYDAY?r.BYDAY.split(",").map(function(x){return["SU","MO","TU","WE","TH","FR","SA"].indexOf(x.slice(-2))}):null;
+  if(r.FREQ!="DAILY"&&r.FREQ!="WEEKLY")return;
+  for(var i=0;i<8;i++){var day=new Date(d0.getTime()+i*864e5);if(day<new Date(e.start.getFullYear(),e.start.getMonth(),e.start.getDate()))continue;if(until&&day>until)continue;if(e.ex[day.toDateString()])continue;
+   var diff=Math.round((day-new Date(e.start.getFullYear(),e.start.getMonth(),e.start.getDate()))/864e5);
+   if(r.FREQ=="DAILY"&&diff%iv!==0)continue;
+   if(r.FREQ=="WEEKLY"){var wd=by||[e.start.getDay()];if(wd.indexOf(day.getDay())<0)continue;if(Math.floor(diff/7)%iv!==0)continue}
+   out.push({title:e.title,allDay:e.allDay,start:new Date(day.getFullYear(),day.getMonth(),day.getDate(),e.start.getHours(),e.start.getMinutes())})}});
+ CAL=out.sort(function(a,b){return a.start-b.start})}
+function icsDate(v){var y=+v.slice(0,4),m=+v.slice(4,6)-1,d=+v.slice(6,8);if(v.length==8)return new Date(y,m,d);var H=+v.slice(9,11),M=+v.slice(11,13);return v.slice(-1)=="Z"?new Date(Date.UTC(y,m,d,H,M)):new Date(y,m,d,H,M)}
+
+/* ---------- Customise screen ---------- */
+var setSec="cards";
+function chip(label,on,act){return'<div class="app f" data-set="'+act+'" style="width:auto;padding:0 22px;height:56px;font-size:19px;'+(on?"background:#f6efe0;color:#1d1c16":"")+'">'+label+'</div>'}
+function setBody(){var h="",note=function(x){return'<p style="margin:0 0 18px;font-size:20px;color:#b9ae96">'+x+'</p>'};
+ if(setSec=="cards"){h=note("Pick up to four cards for each time of day, in the order you press them.");
+  ["morning","day","evening"].forEach(function(m){var sel=PREFS.cards[m]||[];h+='<p class="lab" style="color:#8a8270;margin:22px 0 10px">'+m.toUpperCase()+'</p><div style="display:flex;gap:12px;flex-wrap:wrap">'+Object.keys(CARDS).map(function(k){var n=sel.indexOf(k);return chip((n>=0?(n+1)+" · ":"")+CARDS[k],n>=0,"card|"+m+"|"+k)}).join("")+'</div>'})}
+ if(setSec=="breaks"){h=note("Breaks the surf call can pick from.")+'<div style="display:flex;gap:12px;flex-wrap:wrap">'+BREAKS.map(function(b){return chip(b.n,PREFS.breaksOff.indexOf(b.n)<0,"brk|"+b.n)}).join("")+'</div>'}
+ if(setSec=="sound"){h=note("Club nights with these sounds get the orange dot and lead the Sydney list.")+'<div style="display:flex;gap:12px;flex-wrap:wrap">'+GENRES.map(function(g){return chip(g,PREFS.taste.indexOf(g)>=0,"gen|"+g)}).join("")+'</div>'}
+ if(setSec=="light"){h=note("Applied once when each part of the day starts.");
+  CFG.profiles.forEach(function(p){h+='<div style="display:flex;align-items:center;gap:12px;margin:14px 0"><p style="margin:0;width:150px;font-size:22px">'+p.id.charAt(0).toUpperCase()+p.id.slice(1)+'</p><p class="mono" style="margin:0;width:150px;color:#8a8270;font-size:15px">'+pad(p.from)+':00–'+pad(p.to%24)+':00</p>'+
+   chip("−",false,'lvl|'+p.id+'|brightness|-10')+'<p style="margin:0;width:190px;text-align:center;font-size:20px">Brightness '+p.brightness+'%</p>'+chip("+",false,'lvl|'+p.id+'|brightness|10')+
+   '<span style="width:24px"></span>'+chip("−",false,'lvl|'+p.id+'|volume|-2')+'<p style="margin:0;width:150px;text-align:center;font-size:20px">Volume '+p.volume+'%</p>'+chip("+",false,'lvl|'+p.id+'|volume|2')+'</div>'})}
+ if(setSec=="phone"){var u=HAS&&Native.remoteUrl?Native.remoteUrl():"";h=note("Control the TV from your iPhone. It must be on the same Wi-Fi as the TV.")+
+  (u?'<p class="lab" style="color:#8a8270;margin:26px 0 10px">OPEN THIS IN SAFARI</p><p class="mono" style="font-size:40px;margin:0;color:#f6efe0">'+esc(u.replace("http://",""))+'</p><p style="font-size:20px;color:#b9ae96;margin:26px 0 0">Then tap Share → Add to Home Screen. It opens like an app from then on.<br>The 4 digits at the end are your code. Anyone without it is refused.</p>':'<p style="font-size:22px">The TV isn\'t on Wi-Fi right now.</p>')}
+ if(setSec=="wake"){h=note("The app comes to the front at these times if the TV is on. A morning time runs the sunrise wake-up.")+'<div style="display:flex;gap:12px;flex-wrap:wrap">'+["5:30","6:00","6:30","7:00","7:30","17:00","17:30","18:00"].map(function(w){return chip(w,PREFS.wake.indexOf(w)>=0,"wake|"+w)}).join("")+'</div>'+
+  '<div style="margin-top:40px">'+chip("Reset everything to default",false,"reset")+'</div>'}
+ return h}
+function renderSettings(keep){var secs=[["phone","Phone remote"],["cards","Home cards"],["breaks","Surf breaks"],["sound","Your sound"],["light","Brightness & volume"],["wake","Wake-up"]];
+ $("dBody").innerHTML='<div class="row" style="align-items:flex-start"><div style="width:340px;display:flex;flex-direction:column;gap:10px">'+secs.map(function(x){return'<div class="app f" data-set="sec|'+x[0]+'" style="width:auto;justify-content:flex-start;padding:0 24px;height:64px;font-size:21px;'+(setSec==x[0]?"background:#2b241c;color:#f6efe0;box-shadow:inset 3px 0 0 #e08a4f":"")+'">'+x[1]+'</div>'}).join("")+'</div><div id="setPanel" class="box" style="flex:1;padding:30px 36px">'+setBody()+'</div></div>';
+ var el=keep&&$("dBody").querySelector('[data-set="'+keep+'"]');setFocus(el||$("dBody").querySelector('[data-set="sec|'+setSec+'"]'))}
+function setAction(a){var k=a.split("|"),i;
+ if(k[0]=="sec"){setSec=k[1];renderSettings(a);return}
+ if(k[0]=="card"){var l=PREFS.cards[k[1]]=(PREFS.cards[k[1]]||[]).slice();i=l.indexOf(k[2]);if(i>=0)l.splice(i,1);else if(l.length<4)l.push(k[2]);savePrefs();renderSettings(a);return}
+ if(k[0]=="brk"){var o=PREFS.breaksOff;i=o.indexOf(k[1]);if(i>=0)o.splice(i,1);else if(BREAKS.length-o.length>1)o.push(k[1]);savePrefs();renderSettings(a);return}
+ if(k[0]=="gen"){var t=PREFS.taste;i=t.indexOf(k[1]);if(i>=0)t.splice(i,1);else t.push(k[1]);savePrefs();renderSettings(a);return}
+ if(k[0]=="lvl"){var p=CFG.profiles.filter(function(x){return x.id==k[1]})[0],v=Math.max(0,Math.min(100,p[k[2]]+(+k[3])));PREFS.prof[k[1]]=PREFS.prof[k[1]]||{};PREFS.prof[k[1]][k[2]]=v;savePrefs();if(profile().id==k[1])applyProfile(true);renderSettings(a);return}
+ if(k[0]=="wake"){var w=PREFS.wake;i=w.indexOf(k[1]);if(i>=0)w.splice(i,1);else w.push(k[1]);w.sort(function(x,y){return(+x.replace(":",""))-(+y.replace(":",""))});savePrefs();renderSettings(a);return}
+ if(k[0]=="reset"){PREFS=JSON.parse(JSON.stringify(PDEF));try{localStorage.removeItem("bias");localStorage.removeItem("jumpLimit")}catch(e){}savePrefs();location.reload()}}
+
+/* ---------- TV layer: what's playing and jump back in ---------- */
+var NP=null,RECENT=[];
+function readTV(){if(!HAS||!Native.nowPlaying)return;try{var n=Native.nowPlaying();NP=n?JSON.parse(n):null}catch(e){NP=null}
+ try{RECENT=(Native.recentApps()||"").split("\n").filter(Boolean).map(function(l){var k=l.split("|");return[k[1]||k[0],k[0]]})}catch(e){RECENT=[]}}
+function renderPlay(){var pill=$("playPill");if(!pill)return;
+ if(NP&&NP.title){pill.setAttribute("data-launch",NP.pkg);pill.querySelector(".mono").textContent=(NP.playing?"NOW PLAYING · ":"PAUSED · ")+String(NP.app||"").toUpperCase();$("playName").textContent=NP.title+(NP.artist?" · "+NP.artist:"")}
+ else{pill.setAttribute("data-launch","com.spotify.tv.android");pill.querySelector(".mono").textContent="PLAY ON THE TV";$("playName").textContent="Morning playlist";if(CFG.playlistUri)pill.setAttribute("data-uri",CFG.playlistUri)}}
+
+/* ---------- phone remote ---------- */
+window.remoteCmd=function(c){var k=String(c).split(":");
+ if(c=="up")move("U");else if(c=="down")move("D");else if(c=="left")move("L");else if(c=="right")move("R");
+ else if(c=="ok")activate(cur);
+ else if(c=="home"){if(openView)closeDetail();focusFirst()}
+ else if(k[0]=="open"){openDetail(k[1])}
+ else if(k[0]=="bri"||k[0]=="vol"){var p=profile(),f=k[0]=="bri"?"brightness":"volume",st=k[0]=="bri"?10:2;setAction("lvl|"+p.id+"|"+f+"|"+(k[1]=="-"?-st:st));if(openView=="settings")renderSettings();toast((f=="brightness"?"Brightness ":"Volume ")+p[f]+"%")}
+ else if(c=="photo"){if(PH.length){phIdx=(phIdx+1)%PH.length;showPhoto()}}
+ else if(c=="sunrise")sunrise();
+ else if(c=="refresh")refresh();
+ reportState()};
+function reportState(){if(!HAS||!Native.reportState)return;try{var p=profile();Native.reportState(JSON.stringify({view:openView||"home",profile:p.id,brightness:p.brightness,volume:p.volume,playing:NP&&NP.title?NP.title:""}))}catch(e){}}
+function toast(t){var el=$("toast");if(!el){el=document.createElement("div");el.id="toast";el.style.cssText="position:absolute;right:80px;top:60px;padding:16px 26px;border-radius:14px;background:#2b241c;color:#f6efe0;font-size:24px;transition:opacity .4s;z-index:50";$("wrap").appendChild(el)}el.textContent=t;el.style.opacity=1;clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity=0},1800)}
+
+/* ---------- screensaver mode ---------- */
+function bootDream(){document.body.className="dream";fit();clock();initPhotos();
+ if(PH.length){setInterval(function(){phIdx=(phIdx+1)%PH.length;showPhoto()},60000)}
+ setInterval(clock,15000)}
+/* ---------- remote navigation ---------- */
+var cur=null;
+function focusables(){return Array.prototype.slice.call((openView?$("detail"):document).querySelectorAll(".f")).filter(function(e){return openView?true:!$("detail").contains(e)})}
+function setFocus(el){if(cur)cur.classList.remove("focus");cur=el;if(el){el.classList.add("focus");if(openView=="events"){var i=el.getAttribute("data-ev");if(i!=null){evPanel(+i);el.scrollIntoView({block:"nearest"})}}}}
+function focusFirst(){var l=focusables();setFocus(l[0]||null)}
+function move(dir){var l=focusables();if(!cur||l.indexOf(cur)<0){focusFirst();return}var a=cur.getBoundingClientRect(),ax=a.left+a.width/2,ay=a.top+a.height/2,H=(dir=="L"||dir=="R"),cands=[];
+ l.forEach(function(e){if(e==cur)return;var b=e.getBoundingClientRect(),bx=b.left+b.width/2,by=b.top+b.height/2,dx=bx-ax,dy=by-ay;
+  var ok=dir=="L"?b.right<=a.left+8:dir=="R"?b.left>=a.right-8:dir=="U"?b.bottom<=a.top+8:b.top>=a.bottom-8;if(!ok)return;
+  var overlap=H?(b.top<a.bottom-4&&b.bottom>a.top+4):(b.left<a.right-4&&b.right>a.left+4);
+  var main=H?Math.abs(dx):Math.abs(dy),side=H?Math.abs(dy):Math.abs(dx);cands.push({e:e,ov:overlap,d:main+side*2.5})});
+ if(!cands.length)return;var ov=cands.filter(function(c){return c.ov}),pool=ov.length?ov:cands;pool.sort(function(x,y){return x.d-y.d});
+ var best=pool[0].e;if(best.getAttribute("data-tab")){var act=document.querySelector('[data-tab="'+evTab+'"]');if(act&&dir=="U")best=act}
+ setFocus(best)}
+function activate(el){if(!el)return;var o=el.getAttribute("data-open"),p=el.getAttribute("data-launch"),fbv=el.getAttribute("data-fb");if(fbv){feedback(fbv);return}var lg=el.getAttribute("data-log");if(lg){logSession(lg);return}var bk=el.getAttribute("data-break");if(bk){openDetail("break:"+bk,true);return}var st=el.getAttribute("data-set");if(st){setAction(st);return}var tb=el.getAttribute("data-tab");if(tb){evTab=tb;evAll=false;renderEvents();return}var mo=el.getAttribute("data-more");if(mo!=null){evAll=mo=="1";renderEvents();return}
+ if(o){openDetail(o);return}
+ if(p){if(p=="com.spotify.tv.android"&&el.id=="playPill"&&CFG.playlistUri&&HAS&&!(NP&&NP.title)){if(Native.openUri(CFG.playlistUri,p))return}if(HAS)Native.launch(p)}}
+document.addEventListener("keydown",function(e){var k=e.keyCode;
+ if(k==37){move("L");e.preventDefault()}else if(k==39){move("R");e.preventDefault()}else if(k==38){move("U");e.preventDefault()}else if(k==40){move("D");e.preventDefault()}
+ else if(k==13||k==23){activate(cur);e.preventDefault()}});
+document.addEventListener("click",function(e){var t=e.target.closest?e.target.closest(".f"):null;if(t){setFocus(t);activate(t)}});
+window.onBackKey=function(){if(openView){if(viewStack.length){openDetail(viewStack.pop(),false);return true}closeDetail();return true}return false};
+window.onResumeApp=function(){refresh();if(!openView)renderDock()};
+setInterval(function(){if(!openView&&document.body.className!="dream"){var c=cur&&cur.parentNode&&cur.parentNode.id=="dock"?Array.prototype.indexOf.call($("dock").children,cur):-1;renderDock();if(c>=0)setFocus($("dock").children[Math.min(c,$("dock").children.length-1)])}},60000);
+
+/* ---------- load ---------- */
+function fit(){var k=Math.min(window.innerWidth/1920,window.innerHeight/1080);$("wrap").style.transform="scale("+k+")"}
+function render(){applyProfile(false);clock();renderCards();renderDock();renderWeekLine();if(!openView)focusFirst()}
+function refresh(){
+ var f="https://api.open-meteo.com/v1/forecast?latitude="+CFG.lat+"&longitude="+CFG.lon+"&hourly=temperature_2m,dew_point_2m,cloud_cover_low,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,wind_speed_900hPa,wind_direction_900hPa,wind_speed_700hPa,wind_direction_700hPa,wind_speed_600hPa,wind_direction_600hPa&daily=sunrise,sunset,temperature_2m_max,uv_index_max&wind_speed_unit=kn&timezone=Australia%2FSydney&forecast_days=7";
+ var m="https://marine-api.open-meteo.com/v1/marine?latitude="+CFG.mlat+"&longitude="+CFG.mlon+"&hourly=wave_height,swell_wave_height,swell_wave_direction,swell_wave_period,sea_surface_temperature,sea_level_height_msl&daily=swell_wave_height_max,swell_wave_direction_dominant,swell_wave_period_max&timezone=Australia%2FSydney&forecast_days=7";
+ Promise.all([getJSON(f),getJSON(m)]).then(function(x){F=x[0];M=x[1];W=x[1];try{loadBuoy()}catch(e){}try{loadCal()}catch(e){}if((PREFS.cards[mode()]||[]).indexOf("events")>=0){try{loadEvents()}catch(e){}}if(!openView)render()}).catch(function(){$("cards").innerHTML='<p class="err" style="font-size:28px">Forecast didn\'t load. Check the Wi-Fi.</p>'})}
+function loadConfig(){if(!HAS)return;try{var c=JSON.parse(Native.readText("/sdcard/TV-Morning/config.json")||"{}");for(var k in c)CFG[k]=c[k]}catch(e){}}
+function checkUpdate(){if(!HAS||!CFG.updateUrl)return;setTimeout(function(){var r=Native.checkUpdate(CFG.updateUrl);if(r=="updated")Native.reload()},3000)}
+function sunrise(){var p=profile(),steps=40,k=0;$("dimL").style.transition="none";$("dimL").style.opacity=0.85;if(HAS){Native.setVolume(3);Native.setBrightness(25)}
+ var t=setInterval(function(){k++;var f=k/steps;$("dimL").style.opacity=(0.85-(0.85-p.dim)*f).toFixed(3);if(HAS){Native.setVolume(Math.round(3+(p.volume-3)*f));Native.setBrightness(Math.round((10+(p.brightness-10)*f)*2.55))}if(k>=steps){clearInterval(t);$("dimL").style.transition="opacity 4s"}},15000)}
+window.onWake=function(){if(openView)closeDetail();refresh();sunrise()};
+if(location.hash=="#dream"||(HAS&&Native.dream&&Native.dream())){loadConfig();bootDream();throw"dream"}
+loadConfig();loadPrefs();fit();window.addEventListener("resize",fit);clock();initPhotos();renderDock();focusFirst();refresh();checkUpdate();setInterval(checkUpdate,1800000);if(HAS&&Native.wokeByAlarm())setTimeout(sunrise,1500);
+setInterval(function(){clock();var id=profile().id;if(id!=window._pid){window._pid=id;if(!openView&&F)render()}},15000);if(HAS)Native.schedule(CFG.wakeTimes);applyProfile(false);setInterval(function(){if(!openView)refresh()},900000);
+</script>
+</body>
+</html>
