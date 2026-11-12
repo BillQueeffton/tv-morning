@@ -150,7 +150,7 @@ function profile(){var h=nowH();for(var i=0;i<CFG.profiles.length;i++){var p=CFG
 function mode(){var id=profile().id;return id=="night"?"evening":id}
 function applyProfile(force){var p=profile(),last=null;try{last=localStorage.getItem("profile")}catch(e){}
  $("tone").style.opacity=p.warm;$("dimL").style.opacity=p.dim;
- if(force||last!=p.id){if(HAS){Native.setVolume(p.volume);Native.setBrightness(Math.round(p.brightness*2.55))}try{localStorage.setItem("profile",p.id)}catch(e){}}}
+ if(force||last!=p.id){if(HAS){Native.setVolume(p.volume);var okB=Native.setBrightness(Math.round(p.brightness*2.55));stat("bright",okB,okB?"set to "+p.brightness+"% (check the screen actually changed)":"TV refused the change")}try{localStorage.setItem("profile",p.id)}catch(e){}}}
 function getJSON(u){
   if(HAS){return new Promise(function(res,rej){setTimeout(function(){var t=Native.get(u);t?res(JSON.parse(t)):rej("net")},0)})}
   return fetch(u).then(function(r){return r.json()});
@@ -161,10 +161,10 @@ function getJSON(u){
 var BUOY=null;
 function loadBuoy(){getJSON("https://mhl.nsw.gov.au/s3/www/stations/wave/PTKMOW.json").then(function(j){
   var ks=Object.keys(j.readings).sort(),rows=ks.slice(-24).map(function(k){var r=j.readings[k];return{t:new Date(k.replace(" ","T")+"+10:00"),hs:r["1033"],dir:r["1035"],tp:r["1036"]}}).filter(function(r){return r.hs!=null});
-  if(!rows.length)return;var L=rows[rows.length-1],age=(Date.now()-L.t)/36e5;if(age>6){BUOY=null;return}
+  if(!rows.length){stat("buoy",false,"no readings");return}var L=rows[rows.length-1],age=(Date.now()-L.t)/36e5;if(age>6){BUOY=null;stat("buoy",false,"last reading "+Math.round(age)+" h old");return}stat("buoy",true,L.hs.toFixed(1)+" m measured");
   var lh=localIdx(L.t),mod=M.hourly.wave_height&&M.hourly.wave_height[lh];
   BUOY={hs:L.hs,dir:L.dir,tp:L.tp,t:L.t,idx:lh,model:mod,ratio:mod?Math.max(0.6,Math.min(1.6,L.hs/mod)):1,hist:rows.map(function(r){return r.hs})};
-  if(!openView)render()}).catch(function(){BUOY=null})}
+  if(!openView)render()}).catch(function(){BUOY=null;stat("buoy",false,"couldn't reach MHL")})}
 function localIdx(d){var t0=new Date(M.hourly.time[0]);return Math.round((d-t0)/36e5)-(new Date(M.hourly.time[0]).getTimezoneOffset()-d.getTimezoneOffset())/60}
 function swH(i){var v=M.hourly.swell_wave_height[i];if(!BUOY||v==null)return v;var k=i-BUOY.idx,w=k<0?1:Math.max(0,1-k/18);return v*(1+(BUOY.ratio-1)*w)}
 function buoyLine(){if(!BUOY)return"";var pct=Math.round((BUOY.ratio-1)*100);return"Buoy "+BUOY.hs.toFixed(1)+" m · "+Math.round(BUOY.tp)+" s · "+card(BUOY.dir)+(BUOY.model?" · forecast said "+BUOY.model.toFixed(1)+" m"+(Math.abs(pct)>=8?" (ratings "+(pct>0?"+":"")+pct+"%)":""):"")}
@@ -215,7 +215,7 @@ var PH=[],phIdx=0,phLayer=0;
 function themeName(f){var m=f.match(/^\d\d_([a-z0-9-]+)__/);if(!m)return"Your photos";return m[1].replace(/-/g," ").replace(/\b\w/g,function(c){return c.toUpperCase()}).replace("Guam Saipan","Guam & Saipan").replace("Surf Skate","Surf & Skate").replace("Mountains Trails","Mountains & Trails").replace("Japan Travel","Japan & Travel").replace("Making Studio","Making & Studio")}
 var CAPS={};
 function initPhotos(){
-  if(!HAS)return;try{CAPS=JSON.parse(Native.readText("/sdcard/Pictures/TV-Morning/captions.json")||"{}")}catch(e){}var list=Native.photos();if(!list)return;PH=list.split("\n");
+  if(!HAS)return;try{CAPS=JSON.parse(Native.readText("/sdcard/Pictures/TV-Morning/captions.json")||"{}")}catch(e){}var list=Native.photos();if(!list){stat("photos",false,"no photos found on the TV");return}PH=list.split("\n");stat("photos",true,PH.length+" photos");
   var d=new Date(),doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);phIdx=(doy*7)%PH.length;
   var c=$("photos");c.innerHTML='<div class="ph" id="ph0"></div><div class="ph" id="ph1"></div>';showPhoto();
   setInterval(function(){phIdx=(phIdx+1)%PH.length;showPhoto()},600000);
@@ -356,7 +356,7 @@ function loadEvents(force){var d=new Date().toDateString();if(!force&&evDay==d&&
  var g=[];["wollongong","illawarra","thirroul","kiama"].forEach(function(q){g=g.concat(ldEvents("https://www.moshtix.com.au/v2/search?query="+q,"Moshtix"))});
  EV.gong=dedupe(g).sort(byDay);
  EV.gongMore=cleanUp(dedupe(ldEvents("https://www.eventbrite.com.au/d/australia--wollongong/events--this-week/","Eventbrite"))).filter(function(e){return /wollongong|thirroul|austinmer|bulli|corrimal|fairy meadow|shellharbour|kiama|port kembla|figtree|woonona|unanderra|warrawong|dapto|oak flats/i.test(e.addr+" "+e.venue)}).sort(byDay);
- EV.syd=dedupe(raEvents()).sort(byDay);
+ EV.syd=dedupe(raEvents()).sort(byDay);stat("events",EV.gong.length+EV.syd.length>0,EV.gong.length+" Wollongong · "+EV.syd.length+" Sydney");
  EV.sydMore=cleanUp(dedupe(ldEvents("https://www.eventbrite.com.au/d/australia--sydney/events--this-week/","Eventbrite"))).sort(byDay);
  SYD=EV.syd;evDay=d}
 function evWhen(e){var s=DAYS[e.start.getDay()]+" "+e.start.getDate()+" "+MON[e.start.getMonth()];if(e.timed){s+=" · "+tm(e.start);if(e.end)s+=" – "+tm(e.end)}return s}
@@ -390,7 +390,7 @@ var SHORT={"Sandon Point":"Sandon","Bulli Point":"Bulli","North Wollongong":"Nor
 function short(n){return SHORT[n]||n}
 function sydLine(x){return DAYS[x.day.getDay()]+" · "+x.venue}
 /* ---------- calendar (iCal) ---------- */
-function loadCal(){if(!CFG.calendarIcs||!HAS)return;var t=Native.get(CFG.calendarIcs);if(!t)return;var ev=[],cur=null;
+function loadCal(){if(!CFG.calendarIcs||!HAS){stat("cal",false,"no calendar link in config");return}var t=Native.get(CFG.calendarIcs);if(!t){stat("cal",false,"couldn't download");return}stat("cal",true,"Google Calendar");var ev=[],cur=null;
  t.replace(/\r\n[ \t]/g,"").split(/\r?\n/).forEach(function(l){if(l=="BEGIN:VEVENT")cur={ex:{}};else if(l=="END:VEVENT"){if(cur&&cur.start&&cur.status!="CANCELLED")ev.push(cur);cur=null}else if(cur){var k=l.split(":")[0],v=l.slice(l.indexOf(":")+1);
   if(k.indexOf("SUMMARY")==0)cur.title=v.replace(/\\,/g,",").replace(/\\;/g,";");
   if(k.indexOf("DTSTART")==0){cur.allDay=v.length==8;cur.start=icsDate(v)}
@@ -411,6 +411,24 @@ function loadCal(){if(!CFG.calendarIcs||!HAS)return;var t=Native.get(CFG.calenda
  CAL=out.sort(function(a,b){return a.start-b.start})}
 function icsDate(v){var y=+v.slice(0,4),m=+v.slice(4,6)-1,d=+v.slice(6,8);if(v.length==8)return new Date(y,m,d);var H=+v.slice(9,11),M=+v.slice(11,13);return v.slice(-1)=="Z"?new Date(Date.UTC(y,m,d,H,M)):new Date(y,m,d,H,M)}
 
+
+/* ---------- health: what loaded, what didn't, and offline fallback ---------- */
+var VERSION="1.5 · 12 Nov";
+var STAT={};
+function stat(k,ok,note){STAT[k]={ok:ok,t:new Date(),note:note||""}}
+function saveCache(){try{localStorage.setItem("wx",JSON.stringify({t:Date.now(),F:F,M:M}))}catch(e){}}
+function useCache(){try{var c=JSON.parse(localStorage.getItem("wx")||"null");if(!c||Date.now()-c.t>36*36e5)return false;F=c.F;M=c.M;W=c.M;OFFLINE=c.t;return true}catch(e){return false}}
+var OFFLINE=0;
+function statusBody(){var perms=HAS?[
+  ["Now playing access",Native.nowPlaying?Native.nowPlaying()!=="denied":false,Native.nowPlaying&&Native.nowPlaying()==="denied"?"Not granted. Re-run the install":"Shows when something is playing"],
+  ["Recent apps access",Native.recentApps?(Native.recentApps()!==""?true:null):false,Native.recentApps&&Native.recentApps()!==""?"Jump back in is working":"Nothing yet. Use an app for a minute, or usage access wasn't granted"],
+  ["Phone remote",Native.remoteUrl?!!Native.remoteUrl():false,Native.remoteUrl?Native.remoteUrl().replace("http://",""):""]]:[];
+ var rows=[["Forecast","wx"],["Surf model","marine"],["Port Kembla buoy","buoy"],["Calendar","cal"],["Events","events"],["Photos","photos"],["Page update","update"],["Brightness control","bright"]].map(function(x){var v=STAT[x[1]];
+   return[x[0],v?v.ok:null,v?(v.note+(v.t?" · "+v.t.toTimeString().slice(0,5):"")):"not checked yet"]}).concat(perms);
+ return'<div class="box"><table class="tbl" style="width:100%">'+rows.map(function(r){var c=r[1]===null?"#8a8270":r[1]?"#9fd4a8":"#e58b7a",w=r[1]===null?"—":r[1]?"OK":"Problem";
+  return'<tr><td style="font-size:24px;width:360px">'+r[0]+'</td><td class="mono" style="color:'+c+';width:160px">'+w+'</td><td style="color:#b9ae96;font-size:19px">'+esc(String(r[2]||""))+'</td></tr>'}).join("")+'</table></div>'+
+  '<p class="mono" style="margin:22px 0 0;color:#8a8270;font-size:15px">PAGE '+VERSION+(OFFLINE?' · SHOWING SAVED FORECAST FROM '+new Date(OFFLINE).toTimeString().slice(0,5):'')+'</p>'+
+  '<div style="display:flex;gap:14px;margin-top:22px">'+chip("Refresh everything",false,"refresh")+chip("Check for page update",false,"update")+'</div>'}
 /* ---------- Customise screen ---------- */
 var setSec="cards";
 function chip(label,on,act){return'<div class="app f" data-set="'+act+'" style="width:auto;padding:0 22px;height:56px;font-size:19px;'+(on?"background:#f6efe0;color:#1d1c16":"")+'">'+label+'</div>'}
@@ -425,10 +443,11 @@ function setBody(){var h="",note=function(x){return'<p style="margin:0 0 18px;fo
    '<span style="width:24px"></span>'+chip("−",false,'lvl|'+p.id+'|volume|-2')+'<p style="margin:0;width:150px;text-align:center;font-size:20px">Volume '+p.volume+'%</p>'+chip("+",false,'lvl|'+p.id+'|volume|2')+'</div>'})}
  if(setSec=="phone"){var u=HAS&&Native.remoteUrl?Native.remoteUrl():"";h=note("Control the TV from your iPhone. It must be on the same Wi-Fi as the TV.")+
   (u?'<p class="lab" style="color:#8a8270;margin:26px 0 10px">OPEN THIS IN SAFARI</p><p class="mono" style="font-size:40px;margin:0;color:#f6efe0">'+esc(u.replace("http://",""))+'</p><p style="font-size:20px;color:#b9ae96;margin:26px 0 0">Then tap Share → Add to Home Screen. It opens like an app from then on.<br>The 4 digits at the end are your code. Anyone without it is refused.</p>':'<p style="font-size:22px">The TV isn\'t on Wi-Fi right now.</p>')}
+ if(setSec=="system"){h=statusBody()}
  if(setSec=="wake"){h=note("The app comes to the front at these times if the TV is on. A morning time runs the sunrise wake-up.")+'<div style="display:flex;gap:12px;flex-wrap:wrap">'+["5:30","6:00","6:30","7:00","7:30","17:00","17:30","18:00"].map(function(w){return chip(w,PREFS.wake.indexOf(w)>=0,"wake|"+w)}).join("")+'</div>'+
   '<div style="margin-top:40px">'+chip("Reset everything to default",false,"reset")+'</div>'}
  return h}
-function renderSettings(keep){var secs=[["phone","Phone remote"],["cards","Home cards"],["breaks","Surf breaks"],["sound","Your sound"],["light","Brightness & volume"],["wake","Wake-up"]];
+function renderSettings(keep){var secs=[["phone","Phone remote"],["cards","Home cards"],["breaks","Surf breaks"],["sound","Your sound"],["light","Brightness & volume"],["wake","Wake-up"],["system","System check"]];
  $("dBody").innerHTML='<div class="row" style="align-items:flex-start"><div style="width:340px;display:flex;flex-direction:column;gap:10px">'+secs.map(function(x){return'<div class="app f" data-set="sec|'+x[0]+'" style="width:auto;justify-content:flex-start;padding:0 24px;height:64px;font-size:21px;'+(setSec==x[0]?"background:#2b241c;color:#f6efe0;box-shadow:inset 3px 0 0 #e08a4f":"")+'">'+x[1]+'</div>'}).join("")+'</div><div id="setPanel" class="box" style="flex:1;padding:30px 36px">'+setBody()+'</div></div>';
  var el=keep&&$("dBody").querySelector('[data-set="'+keep+'"]');setFocus(el||$("dBody").querySelector('[data-set="sec|'+setSec+'"]'))}
 function setAction(a){var k=a.split("|"),i;
@@ -438,11 +457,13 @@ function setAction(a){var k=a.split("|"),i;
  if(k[0]=="gen"){var t=PREFS.taste;i=t.indexOf(k[1]);if(i>=0)t.splice(i,1);else t.push(k[1]);savePrefs();renderSettings(a);return}
  if(k[0]=="lvl"){var p=CFG.profiles.filter(function(x){return x.id==k[1]})[0],v=Math.max(0,Math.min(100,p[k[2]]+(+k[3])));PREFS.prof[k[1]]=PREFS.prof[k[1]]||{};PREFS.prof[k[1]][k[2]]=v;savePrefs();if(profile().id==k[1])applyProfile(true);renderSettings(a);return}
  if(k[0]=="wake"){var w=PREFS.wake;i=w.indexOf(k[1]);if(i>=0)w.splice(i,1);else w.push(k[1]);w.sort(function(x,y){return(+x.replace(":",""))-(+y.replace(":",""))});savePrefs();renderSettings(a);return}
+ if(k[0]=="refresh"){refresh();toast("Refreshing…");setTimeout(function(){if(openView=="settings")renderSettings(a)},4000);return}
+ if(k[0]=="update"){checkUpdate();toast("Checking GitHub…");setTimeout(function(){if(openView=="settings")renderSettings(a)},5000);return}
  if(k[0]=="reset"){PREFS=JSON.parse(JSON.stringify(PDEF));try{localStorage.removeItem("bias");localStorage.removeItem("jumpLimit")}catch(e){}savePrefs();location.reload()}}
 
 /* ---------- TV layer: what's playing and jump back in ---------- */
 var NP=null,RECENT=[];
-function readTV(){if(!HAS||!Native.nowPlaying)return;try{var n=Native.nowPlaying();NP=n?JSON.parse(n):null}catch(e){NP=null}
+function readTV(){if(!HAS||!Native.nowPlaying)return;try{var n=Native.nowPlaying();stat("np",n!=="denied",n==="denied"?"permission not granted":"ok");NP=n&&n!=="denied"?JSON.parse(n):null}catch(e){NP=null}
  try{RECENT=(Native.recentApps()||"").split("\n").filter(Boolean).map(function(l){var k=l.split("|");return[k[1]||k[0],k[0]]})}catch(e){RECENT=[]}}
 function renderPlay(){var pill=$("playPill");if(!pill)return;
  if(NP&&NP.title){pill.setAttribute("data-launch",NP.pkg);pill.querySelector(".mono").textContent=(NP.playing?"NOW PLAYING · ":"PAUSED · ")+String(NP.app||"").toUpperCase();$("playName").textContent=NP.title+(NP.artist?" · "+NP.artist:"")}
@@ -496,9 +517,9 @@ function render(){applyProfile(false);clock();renderCards();renderDock();renderW
 function refresh(){
  var f="https://api.open-meteo.com/v1/forecast?latitude="+CFG.lat+"&longitude="+CFG.lon+"&hourly=temperature_2m,dew_point_2m,cloud_cover_low,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cloud_cover,wind_speed_900hPa,wind_direction_900hPa,wind_speed_700hPa,wind_direction_700hPa,wind_speed_600hPa,wind_direction_600hPa&daily=sunrise,sunset,temperature_2m_max,uv_index_max&wind_speed_unit=kn&timezone=Australia%2FSydney&forecast_days=7";
  var m="https://marine-api.open-meteo.com/v1/marine?latitude="+CFG.mlat+"&longitude="+CFG.mlon+"&hourly=wave_height,swell_wave_height,swell_wave_direction,swell_wave_period,sea_surface_temperature,sea_level_height_msl&daily=swell_wave_height_max,swell_wave_direction_dominant,swell_wave_period_max&timezone=Australia%2FSydney&forecast_days=7";
- Promise.all([getJSON(f),getJSON(m)]).then(function(x){F=x[0];M=x[1];W=x[1];try{loadBuoy()}catch(e){}try{loadCal()}catch(e){}if((PREFS.cards[mode()]||[]).indexOf("events")>=0){try{loadEvents()}catch(e){}}if(!openView)render()}).catch(function(){$("cards").innerHTML='<p class="err" style="font-size:28px">Forecast didn\'t load. Check the Wi-Fi.</p>'})}
+ Promise.all([getJSON(f),getJSON(m)]).then(function(x){F=x[0];M=x[1];W=x[1];OFFLINE=0;saveCache();stat("wx",true,"Open-Meteo");stat("marine",true,"Open-Meteo marine");try{loadBuoy()}catch(e){}try{loadCal()}catch(e){}if((PREFS.cards[mode()]||[]).indexOf("events")>=0){try{loadEvents()}catch(e){}}if(!openView)render()}).catch(function(){stat("wx",false,"couldn't reach Open-Meteo");if(!F&&useCache()){stat("wx",false,"offline, using saved forecast");if(!openView)render();setTimeout(function(){toast("No internet · forecast saved at "+new Date(OFFLINE).toTimeString().slice(0,5))},800);return}if(F&&OFFLINE)toast("Still offline · forecast from "+new Date(OFFLINE).toTimeString().slice(0,5));if(F)return;$("cards").innerHTML='<p class="err" style="font-size:28px">Forecast didn\'t load. Check the Wi-Fi.</p>'})}
 function loadConfig(){if(!HAS)return;try{var c=JSON.parse(Native.readText("/sdcard/TV-Morning/config.json")||"{}");for(var k in c)CFG[k]=c[k]}catch(e){}}
-function checkUpdate(){if(!HAS||!CFG.updateUrl)return;setTimeout(function(){var r=Native.checkUpdate(CFG.updateUrl);if(r=="updated")Native.reload()},3000)}
+function checkUpdate(){if(!HAS||!CFG.updateUrl){stat("update",null,"no update link");return}setTimeout(function(){var r=Native.checkUpdate(CFG.updateUrl);stat("update",r!="fail",r=="same"?"up to date":r=="updated"?"new page installed":"couldn't reach GitHub");if(r=="updated")Native.reload()},3000)}
 function sunrise(){var p=profile(),steps=40,k=0;$("dimL").style.transition="none";$("dimL").style.opacity=0.85;if(HAS){Native.setVolume(3);Native.setBrightness(25)}
  var t=setInterval(function(){k++;var f=k/steps;$("dimL").style.opacity=(0.85-(0.85-p.dim)*f).toFixed(3);if(HAS){Native.setVolume(Math.round(3+(p.volume-3)*f));Native.setBrightness(Math.round((10+(p.brightness-10)*f)*2.55))}if(k>=steps){clearInterval(t);$("dimL").style.transition="opacity 4s"}},15000)}
 window.onWake=function(){if(openView)closeDetail();refresh();sunrise()};
