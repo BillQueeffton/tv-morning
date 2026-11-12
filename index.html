@@ -127,13 +127,13 @@ var F=null,M=null,W=null,CAL=[];
 var CARDS={surf:"Surf",jump:"Jump",tide:"Tide",weather:"Weather",events:"Events",tomorrow:"Tomorrow"};
 var GENRES=["House","Deep House","Disco","Garage","Minimal","Tech House","Techno","Electro","Jazz","Bass","Hip-Hop","R&B"];
 var PDEF={cards:{morning:["surf","jump","tide","weather"],day:["weather","surf","tide","jump"],evening:["tomorrow","events","weather","tide"]},
- breaksOff:[],taste:["House","Deep House","Disco","Garage","Minimal","Tech House","Electro","Jazz"],prof:{},wake:["5:30","17:30"]};
+ breaksOff:[],taste:["House","Deep House","Disco","Garage","Minimal","Tech House","Electro","Jazz"],prof:{},wake:["5:30","17:30"],alarmOn:true};
 var PREFS=JSON.parse(JSON.stringify(PDEF));
 function loadPrefs(){try{var p=JSON.parse(localStorage.getItem("prefs")||"{}");for(var k in p)PREFS[k]=p[k]}catch(e){}applyPrefs()}
-function savePrefs(){try{localStorage.setItem("prefs",JSON.stringify(PREFS))}catch(e){}applyPrefs()}
+function savePrefs(){try{localStorage.setItem("prefs",JSON.stringify(PREFS))}catch(e){}applyPrefs();try{reportState()}catch(e){}}
 function applyPrefs(){TASTE=PREFS.taste.map(function(x){return x.toLowerCase()});
  CFG.profiles.forEach(function(p){var o=PREFS.prof[p.id];if(o){if(o.volume!=null)p.volume=o.volume;if(o.brightness!=null)p.brightness=o.brightness}});
- CFG.wakeTimes=PREFS.wake.join(",");if(HAS&&Native.schedule)Native.schedule(CFG.wakeTimes)}
+ if(PREFS.alarmOn==null)PREFS.alarmOn=true;CFG.wakeTimes=PREFS.alarmOn?PREFS.wake.join(","):"";if(HAS&&Native.schedule)Native.schedule(CFG.wakeTimes)}
 function activeBreaks(){return BREAKS.filter(function(b){return PREFS.breaksOff.indexOf(b.n)<0})}
 /* ---------- helpers ---------- */
 function $(i){return document.getElementById(i)}
@@ -413,7 +413,7 @@ function icsDate(v){var y=+v.slice(0,4),m=+v.slice(4,6)-1,d=+v.slice(6,8);if(v.l
 
 
 /* ---------- health: what loaded, what didn't, and offline fallback ---------- */
-var VERSION="1.6 · 12 Nov";
+var VERSION="1.7 · 12 Nov";
 var STAT={};
 function stat(k,ok,note){STAT[k]={ok:ok,t:new Date(),note:note||""}}
 function saveCache(){try{localStorage.setItem("wx",JSON.stringify({t:Date.now(),F:F,M:M}))}catch(e){}}
@@ -444,7 +444,7 @@ function setBody(){var h="",note=function(x){return'<p style="margin:0 0 18px;fo
  if(setSec=="phone"){var u=HAS&&Native.remoteUrl?Native.remoteUrl():"";h=note("Control the TV from your iPhone. It must be on the same Wi-Fi as the TV.")+
   (u?'<p class="lab" style="color:#8a8270;margin:26px 0 10px">OPEN THIS IN SAFARI</p><p class="mono" style="font-size:40px;margin:0;color:#f6efe0">'+esc(u.replace("http://",""))+'</p><p style="font-size:20px;color:#b9ae96;margin:26px 0 0">Then tap Share → Add to Home Screen. It opens like an app from then on.<br>The 4 digits at the end are your code. Anyone without it is refused.</p>':'<p style="font-size:22px">The TV isn\'t on Wi-Fi right now.</p>')}
  if(setSec=="system"){h=statusBody()}
- if(setSec=="wake"){h=note("The app comes to the front at these times if the TV is on. A morning time runs the sunrise wake-up.")+'<div style="display:flex;gap:12px;flex-wrap:wrap">'+["5:30","6:00","6:30","7:00","7:30","17:00","17:30","18:00"].map(function(w){return chip(w,PREFS.wake.indexOf(w)>=0,"wake|"+w)}).join("")+'</div>'+
+ if(setSec=="wake"){h=note("The app comes to the front at these times and tries to switch the TV on. A morning time runs the sunrise: OK on the remote wakes you up now, Back gives you 10 more minutes.")+'<div style="margin-bottom:22px">'+chip(PREFS.alarmOn?"Alarm on":"Alarm off",PREFS.alarmOn,"alarmT")+'</div>'+'<div style="display:flex;gap:12px;flex-wrap:wrap">'+["5:00","5:30","6:00","6:30","7:00","7:30","17:00","17:30"].map(function(w){return chip(w,PREFS.wake.indexOf(w)>=0,"wake|"+w)}).join("")+'</div>'+
   '<div style="margin-top:40px">'+chip("Reset everything to default",false,"reset")+'</div>'}
  return h}
 function renderSettings(keep){var secs=[["phone","Phone remote"],["cards","Home cards"],["breaks","Surf breaks"],["sound","Your sound"],["light","Brightness & volume"],["wake","Wake-up"],["system","System check"]];
@@ -456,7 +456,8 @@ function setAction(a){var k=a.split("|"),i;
  if(k[0]=="brk"){var o=PREFS.breaksOff;i=o.indexOf(k[1]);if(i>=0)o.splice(i,1);else if(BREAKS.length-o.length>1)o.push(k[1]);savePrefs();renderSettings(a);return}
  if(k[0]=="gen"){var t=PREFS.taste;i=t.indexOf(k[1]);if(i>=0)t.splice(i,1);else t.push(k[1]);savePrefs();renderSettings(a);return}
  if(k[0]=="lvl"){var p=CFG.profiles.filter(function(x){return x.id==k[1]})[0],v=Math.max(0,Math.min(100,p[k[2]]+(+k[3])));PREFS.prof[k[1]]=PREFS.prof[k[1]]||{};PREFS.prof[k[1]][k[2]]=v;savePrefs();if(profile().id==k[1])applyProfile(true);renderSettings(a);return}
- if(k[0]=="wake"){var w=PREFS.wake;i=w.indexOf(k[1]);if(i>=0)w.splice(i,1);else w.push(k[1]);w.sort(function(x,y){return(+x.replace(":",""))-(+y.replace(":",""))});savePrefs();renderSettings(a);return}
+ if(k[0]=="wake"){var w=PREFS.wake;i=w.indexOf(k[1]);if(i>=0)w.splice(i,1);else w.push(k[1]);w.sort(function(x,y){return(+x.replace(":",""))-(+y.replace(":",""))});savePrefs();if(openView=="settings")renderSettings(a);return}
+ if(k[0]=="alarmT"){PREFS.alarmOn=!PREFS.alarmOn;savePrefs();renderSettings(a);return}
  if(k[0]=="refresh"){refresh();toast("Refreshing…");setTimeout(function(){if(openView=="settings")renderSettings(a)},4000);return}
  if(k[0]=="update"){checkUpdate();toast("Checking GitHub…");setTimeout(function(){if(openView=="settings")renderSettings(a)},5000);return}
  if(k[0]=="reset"){PREFS=JSON.parse(JSON.stringify(PDEF));try{localStorage.removeItem("bias");localStorage.removeItem("jumpLimit")}catch(e){}savePrefs();location.reload()}}
@@ -478,9 +479,13 @@ window.remoteCmd=function(c){var k=String(c).split(":");
  else if(k[0]=="bri"||k[0]=="vol"){var p=profile(),f=k[0]=="bri"?"brightness":"volume",st=k[0]=="bri"?10:2;setAction("lvl|"+p.id+"|"+f+"|"+(k[1]=="-"?-st:st));if(openView=="settings")renderSettings();toast((f=="brightness"?"Brightness ":"Volume ")+p[f]+"%")}
  else if(c=="photo"){if(PH.length){phIdx=(phIdx+1)%PH.length;showPhoto()}}
  else if(c=="sunrise")sunrise();
+ else if(c=="wakeup")stopWake();
+ else if(c=="snooze")snoozeWake();
+ else if(k[0]=="alarm"){PREFS.alarmOn=k[1]=="on";savePrefs();toast(PREFS.alarmOn?"Alarm on":"Alarm off");if(openView=="settings")renderSettings()}
+ else if(k[0]=="wake"&&k[1]){setAction("wake|"+k[1].replace(".",":"));toast("Wake "+(PREFS.wake.indexOf(k[1].replace(".",":"))>=0?"on":"off")+" at "+k[1].replace(".",":"))}
  else if(c=="refresh")refresh();
  reportState()};
-function reportState(){if(!HAS||!Native.reportState)return;try{var p=profile();Native.reportState(JSON.stringify({view:openView||"home",profile:p.id,brightness:p.brightness,volume:p.volume,playing:NP&&NP.title?NP.title:""}))}catch(e){}}
+function reportState(){if(!HAS||!Native.reportState)return;try{var p=profile();Native.reportState(JSON.stringify({view:openView||"home",profile:p.id,brightness:p.brightness,volume:p.volume,playing:NP&&NP.title?NP.title:"",alarm:PREFS.alarmOn,wake:PREFS.wake,waking:waking()}))}catch(e){}}
 function toast(t){var el=$("toast");if(!el){el=document.createElement("div");el.id="toast";el.style.cssText="position:absolute;right:80px;top:60px;padding:16px 26px;border-radius:14px;background:#2b241c;color:#f6efe0;font-size:24px;transition:opacity .4s;z-index:50";$("wrap").appendChild(el)}el.textContent=t;el.style.opacity=1;clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity=0},1800)}
 
 /* ---------- screensaver mode ---------- */
@@ -505,9 +510,9 @@ function activate(el){if(!el)return;var o=el.getAttribute("data-open"),p=el.getA
  if(p){if(p=="com.spotify.tv.android"&&el.id=="playPill"&&CFG.playlistUri&&HAS&&!(NP&&NP.title)){if(Native.openUri(CFG.playlistUri,p))return}if(HAS)Native.launch(p)}}
 document.addEventListener("keydown",function(e){var k=e.keyCode;
  if(k==37){move("L");e.preventDefault()}else if(k==39){move("R");e.preventDefault()}else if(k==38){move("U");e.preventDefault()}else if(k==40){move("D");e.preventDefault()}
- else if(k==13||k==23){activate(cur);e.preventDefault()}});
+ else if(k==13||k==23){if(waking()){stopWake();e.preventDefault();return}activate(cur);e.preventDefault()}});
 document.addEventListener("click",function(e){var t=e.target.closest?e.target.closest(".f"):null;if(t){setFocus(t);activate(t)}});
-window.onBackKey=function(){if(openView){if(viewStack.length){openDetail(viewStack.pop(),false);return true}closeDetail();return true}return false};
+window.onBackKey=function(){if(SUN){snoozeWake();return true}if(SNOOZE){stopWake();return true}if(openView){if(viewStack.length){openDetail(viewStack.pop(),false);return true}closeDetail();return true}return false};
 window.onResumeApp=function(){refresh();if(!openView)renderDock()};
 setInterval(function(){if(!openView&&document.body.className!="dream"){var c=cur&&cur.parentNode&&cur.parentNode.id=="dock"?Array.prototype.indexOf.call($("dock").children,cur):-1;renderDock();if(c>=0)setFocus($("dock").children[Math.min(c,$("dock").children.length-1)])}},60000);
 
@@ -520,11 +525,17 @@ function refresh(){
  Promise.all([getJSON(f),getJSON(m)]).then(function(x){F=x[0];M=x[1];W=x[1];OFFLINE=0;saveCache();stat("wx",true,"Open-Meteo");stat("marine",true,"Open-Meteo marine");try{loadBuoy()}catch(e){}try{loadCal()}catch(e){}if((PREFS.cards[mode()]||[]).indexOf("events")>=0){try{loadEvents()}catch(e){}}if(!openView)render()}).catch(function(){stat("wx",false,"couldn't reach Open-Meteo");if(!F&&useCache()){stat("wx",false,"offline, using saved forecast");if(!openView)render();setTimeout(function(){toast("No internet · forecast saved at "+new Date(OFFLINE).toTimeString().slice(0,5))},800);return}if(F&&OFFLINE)toast("Still offline · forecast from "+new Date(OFFLINE).toTimeString().slice(0,5));if(F)return;$("cards").innerHTML='<p class="err" style="font-size:28px">Forecast didn\'t load. Check the Wi-Fi.</p>'})}
 function loadConfig(){if(!HAS)return;try{var c=JSON.parse(Native.readText("/sdcard/TV-Morning/config.json")||"{}");for(var k in c)CFG[k]=c[k]}catch(e){}}
 function checkUpdate(){if(!HAS||!CFG.updateUrl){stat("update",null,"no update link");return}setTimeout(function(){var r=Native.checkUpdate(CFG.updateUrl);stat("update",r!="fail",r=="same"?"up to date":r=="updated"?"new page installed":"couldn't reach GitHub");if(r=="updated")Native.reload()},3000)}
-function sunrise(){var p=profile(),steps=40,k=0;$("dimL").style.transition="none";$("dimL").style.opacity=0.85;if(HAS){Native.setVolume(3);Native.setBrightness(25)}
- var t=setInterval(function(){k++;var f=k/steps;$("dimL").style.opacity=(0.85-(0.85-p.dim)*f).toFixed(3);if(HAS){Native.setVolume(Math.round(3+(p.volume-3)*f));Native.setBrightness(Math.round((10+(p.brightness-10)*f)*2.55))}if(k>=steps){clearInterval(t);$("dimL").style.transition="opacity 4s"}},15000)}
+var SUN=null,SNOOZE=null;
+function sunrise(){if(SUN)clearInterval(SUN);var p=profile(),steps=40,k=0;wakeBanner(true);$("dimL").style.transition="none";$("dimL").style.opacity=0.85;if(HAS){Native.setVolume(3);Native.setBrightness(25)}
+ var t=setInterval(function(){k++;var f=k/steps;$("dimL").style.opacity=(0.85-(0.85-p.dim)*f).toFixed(3);if(HAS){Native.setVolume(Math.round(3+(p.volume-3)*f));Native.setBrightness(Math.round((10+(p.brightness-10)*f)*2.55))}if(k>=steps){clearInterval(t);SUN=null;wakeBanner(false);$("dimL").style.transition="opacity 4s"}},15000);SUN=t}
+function wakeBanner(on){var el=$("wakeB");if(!on){if(el)el.remove();return}if(!el){el=document.createElement("div");el.id="wakeB";el.style.cssText="position:absolute;left:50%;bottom:150px;transform:translateX(-50%);padding:18px 34px;border-radius:18px;background:rgba(18,17,13,.82);color:#f6efe0;font-size:26px;z-index:60;white-space:nowrap";$("wrap").appendChild(el)}
+ el.innerHTML='Good morning <span class="mono" style="font-size:16px;color:#b9ae96;margin-left:22px">OK · WAKE UP NOW &nbsp;&nbsp; BACK · 10 MORE MINUTES</span>'}
+function stopWake(){if(SUN){clearInterval(SUN);SUN=null}if(SNOOZE){clearTimeout(SNOOZE);SNOOZE=null}wakeBanner(false);$("dimL").style.transition="opacity 1.5s";applyProfile(true);toast("Up and at it")}
+function snoozeWake(){if(SUN){clearInterval(SUN);SUN=null}wakeBanner(false);$("dimL").style.transition="opacity 2s";$("dimL").style.opacity=0.97;if(HAS){Native.setVolume(0);Native.setBrightness(0)}toast("10 more minutes");if(SNOOZE)clearTimeout(SNOOZE);SNOOZE=setTimeout(function(){SNOOZE=null;sunrise()},600000)}
+function waking(){return!!(SUN||SNOOZE)}
 window.onWake=function(){if(openView)closeDetail();refresh();if(new Date().getHours()<11)sunrise();else applyProfile(true)};
 if(location.hash=="#dream"||(HAS&&Native.dream&&Native.dream())){loadConfig();bootDream();throw"dream"}
-loadConfig();loadPrefs();fit();window.addEventListener("resize",fit);clock();initPhotos();renderDock();focusFirst();refresh();checkUpdate();setInterval(checkUpdate,1800000);if(HAS&&Native.wokeByAlarm())setTimeout(sunrise,1500);
+loadConfig();loadPrefs();setTimeout(reportState,1500);fit();window.addEventListener("resize",fit);clock();initPhotos();renderDock();focusFirst();refresh();checkUpdate();setInterval(checkUpdate,1800000);if(HAS&&Native.wokeByAlarm())setTimeout(sunrise,1500);
 setInterval(function(){clock();var id=profile().id;if(id!=window._pid){window._pid=id;if(!openView&&F)render()}},15000);if(HAS)Native.schedule(CFG.wakeTimes);applyProfile(false);setInterval(function(){if(!openView)refresh()},900000);
 </script>
 </body>

@@ -22,6 +22,8 @@ button.b:active,.pad button:active{background:#e08a4f;color:#12110d}
 .lab{font:11px ui-monospace,monospace;letter-spacing:.1em;color:#8a8270;margin:4px 0 -6px}
 .lv{display:grid;grid-template-columns:1fr 54px 54px;gap:10px;align-items:center}
 .lv span{font-size:16px;color:#b9ae96}
+button.b.on{background:#f6efe0;color:#12110d}
+.wk{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 </style></head><body><main>
 <div class="top"><h1>TV</h1><span id="st">connecting…</span></div>
 <div class="pad">
@@ -31,6 +33,9 @@ button.b:active,.pad button:active{background:#e08a4f;color:#12110d}
 <p class="lab">OPEN</p>
 <div class="row4"><button class="b" data-a="open:surf">Surf</button><button class="b" data-a="open:jump">Jump</button><button class="b" data-a="open:weather">Weather</button><button class="b" data-a="open:events">Events</button></div>
 <div class="row4"><button class="b" data-a="open:tide">Tide</button><button class="b" data-a="open:week">Week</button><button class="b" data-a="open:apps">Apps</button><button class="b" data-a="open:settings">Settings</button></div>
+<p class="lab">ALARM</p>
+<div class="row"><button class="b" id="alarmBtn" data-a="alarm:off">Alarm on</button><button class="b" data-a="wakeup">Wake up now</button><button class="b" data-a="snooze">10 more min</button></div>
+<div class="wk" id="wk"></div>
 <p class="lab">THIS TIME OF DAY</p>
 <div class="lv"><span>Brightness</span><button class="b" data-a="bri:-">−</button><button class="b" data-a="bri:+">+</button></div>
 <div class="lv"><span>Volume</span><button class="b" data-a="vol:-">−</button><button class="b" data-a="vol:+">+</button></div>
@@ -38,8 +43,11 @@ button.b:active,.pad button:active{background:#e08a4f;color:#12110d}
 </main>
 <script>
 var K=new URLSearchParams(location.search).get("k")||"";
-function st(){fetch("/state?k="+K).then(function(r){return r.json()}).then(function(j){document.getElementById("st").textContent=(j.view||"home")+(j.profile?" · "+j.profile:"")+(j.brightness!=null?" · "+j.brightness+"% bright":"")}).catch(function(){document.getElementById("st").textContent="TV not reachable"})}
+var TIMES=["5:00","5:30","6:00","6:30","7:00","7:30","17:00","17:30"];
+function drawAlarm(j){var b=document.getElementById("alarmBtn");if(j.alarm===undefined)return;b.textContent=j.alarm?"Alarm on":"Alarm off";b.className="b"+(j.alarm?" on":"");b.setAttribute("data-a",j.alarm?"alarm:off":"alarm:on");
+ var w=j.wake||[];document.getElementById("wk").innerHTML=TIMES.map(function(t){return'<button class="b'+(w.indexOf(t)>=0?" on":"")+'" data-a="wake:'+t.replace(":",".")+'">'+t+'</button>'}).join("")}
+function st(){fetch("/state?k="+K).then(function(r){return r.json()}).then(function(j){drawAlarm(j);document.getElementById("st").textContent=(j.view||"home")+(j.profile?" · "+j.profile:"")+(j.brightness!=null?" · "+j.brightness+"% bright":"")}).catch(function(){document.getElementById("st").textContent="TV not reachable"})}
 function send(a){if(navigator.vibrate)navigator.vibrate(8);fetch("/c?k="+K+"&a="+encodeURIComponent(a)).then(function(){setTimeout(st,350)}).catch(function(){document.getElementById("st").textContent="TV not reachable"})}
-document.querySelectorAll("[data-a]").forEach(function(b){b.addEventListener("click",function(){send(b.getAttribute("data-a"))})});
+document.addEventListener("click",function(e){var b=e.target.closest("[data-a]");if(b)send(b.getAttribute("data-a"))});
 st();setInterval(st,8000);
 </script></body></html>
