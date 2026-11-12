@@ -107,7 +107,7 @@ var CFG={
     {id:"day",    from:11,to:17,volume:25,brightness:95,dim:0,   warm:0   },
     {id:"evening",from:17,to:19,volume:15,brightness:20,dim:0.1, warm:0.12},
     {id:"night",  from:19,to:5, volume:8, brightness:0, dim:0.5, warm:0.22}],
-  wakeTimes:"6:00,17:30",     /* the app brings itself to the front at these times if the TV is on */
+  wakeTimes:"5:30,17:30",     /* the app brings itself to the front at these times if the TV is on */
   dockMorning:["Spotify","YouTube","Netflix","ABC iview","SBS","Disney+"],
   dockEvening:["Netflix","Disney+","Max","YouTube","SBS","Paramount+"]
 };
@@ -127,7 +127,7 @@ var F=null,M=null,W=null,CAL=[];
 var CARDS={surf:"Surf",jump:"Jump",tide:"Tide",weather:"Weather",events:"Events",tomorrow:"Tomorrow"};
 var GENRES=["House","Deep House","Disco","Garage","Minimal","Tech House","Techno","Electro","Jazz","Bass","Hip-Hop","R&B"];
 var PDEF={cards:{morning:["surf","jump","tide","weather"],day:["weather","surf","tide","jump"],evening:["tomorrow","events","weather","tide"]},
- breaksOff:[],taste:["House","Deep House","Disco","Garage","Minimal","Tech House","Electro","Jazz"],prof:{},wake:["6:00","17:30"]};
+ breaksOff:[],taste:["House","Deep House","Disco","Garage","Minimal","Tech House","Electro","Jazz"],prof:{},wake:["5:30","17:30"]};
 var PREFS=JSON.parse(JSON.stringify(PDEF));
 function loadPrefs(){try{var p=JSON.parse(localStorage.getItem("prefs")||"{}");for(var k in p)PREFS[k]=p[k]}catch(e){}applyPrefs()}
 function savePrefs(){try{localStorage.setItem("prefs",JSON.stringify(PREFS))}catch(e){}applyPrefs()}
@@ -413,7 +413,7 @@ function icsDate(v){var y=+v.slice(0,4),m=+v.slice(4,6)-1,d=+v.slice(6,8);if(v.l
 
 
 /* ---------- health: what loaded, what didn't, and offline fallback ---------- */
-var VERSION="1.5 · 12 Nov";
+var VERSION="1.6 · 12 Nov";
 var STAT={};
 function stat(k,ok,note){STAT[k]={ok:ok,t:new Date(),note:note||""}}
 function saveCache(){try{localStorage.setItem("wx",JSON.stringify({t:Date.now(),F:F,M:M}))}catch(e){}}
@@ -522,7 +522,7 @@ function loadConfig(){if(!HAS)return;try{var c=JSON.parse(Native.readText("/sdca
 function checkUpdate(){if(!HAS||!CFG.updateUrl){stat("update",null,"no update link");return}setTimeout(function(){var r=Native.checkUpdate(CFG.updateUrl);stat("update",r!="fail",r=="same"?"up to date":r=="updated"?"new page installed":"couldn't reach GitHub");if(r=="updated")Native.reload()},3000)}
 function sunrise(){var p=profile(),steps=40,k=0;$("dimL").style.transition="none";$("dimL").style.opacity=0.85;if(HAS){Native.setVolume(3);Native.setBrightness(25)}
  var t=setInterval(function(){k++;var f=k/steps;$("dimL").style.opacity=(0.85-(0.85-p.dim)*f).toFixed(3);if(HAS){Native.setVolume(Math.round(3+(p.volume-3)*f));Native.setBrightness(Math.round((10+(p.brightness-10)*f)*2.55))}if(k>=steps){clearInterval(t);$("dimL").style.transition="opacity 4s"}},15000)}
-window.onWake=function(){if(openView)closeDetail();refresh();sunrise()};
+window.onWake=function(){if(openView)closeDetail();refresh();if(new Date().getHours()<11)sunrise();else applyProfile(true)};
 if(location.hash=="#dream"||(HAS&&Native.dream&&Native.dream())){loadConfig();bootDream();throw"dream"}
 loadConfig();loadPrefs();fit();window.addEventListener("resize",fit);clock();initPhotos();renderDock();focusFirst();refresh();checkUpdate();setInterval(checkUpdate,1800000);if(HAS&&Native.wokeByAlarm())setTimeout(sunrise,1500);
 setInterval(function(){clock();var id=profile().id;if(id!=window._pid){window._pid=id;if(!openView&&F)render()}},15000);if(HAS)Native.schedule(CFG.wakeTimes);applyProfile(false);setInterval(function(){if(!openView)refresh()},900000);
