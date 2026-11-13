@@ -75,6 +75,9 @@ html,body{margin:0;width:100vw;height:100vh;overflow:hidden;background:#12110d;c
 .err{color:#e58b7a}
 body.dream #cards,body.dream #strip,body.dream #dock,body.dream #detail,body.dream #shadeT{display:none!important}
 body.dream #hello{opacity:.85}
+body.dream #shadeB{height:420px;opacity:1;background:linear-gradient(rgba(18,17,13,0),rgba(18,17,13,.5))}
+body.dream #hello *,body.dream #capS{color:#f6efe0!important}
+body.dream #hello,body.dream #capT,body.dream #capS{text-shadow:0 2px 24px rgba(0,0,0,.7),0 0 4px rgba(0,0,0,.35)}
 .app.np{width:auto;padding:0 26px;background:#2b241c;color:#f6efe0}
 </style>
 </head>
@@ -413,7 +416,7 @@ function icsDate(v){var y=+v.slice(0,4),m=+v.slice(4,6)-1,d=+v.slice(6,8);if(v.l
 
 
 /* ---------- health: what loaded, what didn't, and offline fallback ---------- */
-var VERSION="1.7 · 12 Nov";
+var VERSION="1.8 · 13 Nov";
 var STAT={};
 function stat(k,ok,note){STAT[k]={ok:ok,t:new Date(),note:note||""}}
 function saveCache(){try{localStorage.setItem("wx",JSON.stringify({t:Date.now(),F:F,M:M}))}catch(e){}}
@@ -490,6 +493,7 @@ function toast(t){var el=$("toast");if(!el){el=document.createElement("div");el.
 
 /* ---------- screensaver mode ---------- */
 function bootDream(){document.body.className="dream";fit();clock();initPhotos();
+ var L=PH.filter(function(f){var c=CAPS[f];return !c||c.land!==false});if(L.length){PH=L;phIdx=phIdx%PH.length;showPhoto()}
  if(PH.length){setInterval(function(){phIdx=(phIdx+1)%PH.length;showPhoto()},60000)}
  setInterval(clock,15000)}
 /* ---------- remote navigation ---------- */
